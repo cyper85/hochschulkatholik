@@ -26,19 +26,18 @@
         <title>HochschulKatholik</title>
     </head>
     <body>
-        <div class="app">
-            <h1>Einstellungen</h1>
-            <div id="deviceready" class="blink">
-                <p class="event listening">Connecting to Device</p>
-                <p class="event received">Device is Ready</p>
-            </div>
-			<div class='footer'>
-				<a href='fav.html' class='icon star'>Favoriten</a>
-				<a href='search.html' class='icon search'>Suche</a>
-				<a href='akh.html' class='icon akh'>AKH</a>
-				<a href='index.html' class='icon home'>Home</a>
+		<header>
+			<a href='fav.html' class='icon star'>Favoriten</a>
+			<a href='akh.html' class='icon magnifier'>Suche</a>
+			<a href='akh.html' class='icon'><img src='img/akh60.png'></a>
+			<a href='index.html' class='icon home'>Home</a>
+		</header>
+		<content>
+            <h1>Informationen</h1>
+			<select id='favselect'></select>
+			<div id='favcontent'>
 			</div>
-        </div>
+		</content>
         <script type="text/javascript" src="phonegap.js"></script>
         <script type="text/javascript" src="js/index.js"></script>
         <script type="text/javascript">
