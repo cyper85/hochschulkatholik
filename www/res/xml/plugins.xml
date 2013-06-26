@@ -1,1 +1,5 @@
-<plugin name='Storage' value='org.apache.cordova.Storage' />
+<?xml version="1.0" encoding="utf-8"?>
+<plugins>
+    <plugin name="Storage" value="com.phonegap.Storage"/>
+    <plugin name="Geolocation" value="com.phonegap.GeoBroker"/>
+</plugins>
