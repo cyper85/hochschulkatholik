@@ -51,7 +51,7 @@ var app = {
 		db.transaction(function(tx) {
 			tx.executeSql("SELECT id FROM dataInfo WHERE id = 'version' AND data < "+dataVersion, [], function(tx,rs) {
 				if(rs.rows.length > 0) {
-					$.get(url:'data.json',success:function(data){
+					$.get({url:'data.json', success:function(data){
 						var json = $.parseJSON(data);
 						db.transaction(function(tx) {
 							tx.executeSql('INSERT OR REPLACE INTO dataInfo (id, data) values (\'version\', \''+json.dataInfo.version+'\')');
@@ -74,7 +74,7 @@ var app = {
 								tx.executeSql('INSERT OR REPLACE INTO gemeinde (id, kurz, lang, strasse, ort, plz, patron, url, lat, lon) values (\''+id+'\', \''+kurz+'\', \''+lang+'\', \''+strasse+'\', \''+ort+'\', \''+plz+'\', \''+patron+'\', \''+url+'\', \''+lat+'\', \''+lon+'\')');
 							});
 						}
-					});
+					}});
 				}
 			});
 			tx.executeSql("SELECT kurz, name  FROM gemeinde ORDER BY name", [], function(tx,rs) {
@@ -126,9 +126,11 @@ function checkError(err) {
 }
 
 function initDatabase() {
-	$.get(url:'data.json',success:function(data){
+	$.get({url:'data.json',success:function(data){
 		var json = $.parseJSON(data);
 		
 		$('#shortlink').attr("href",json.short);
-	});
+	}});
 }
+
+app.initialize();
