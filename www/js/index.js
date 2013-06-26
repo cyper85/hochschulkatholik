@@ -77,6 +77,12 @@ var app = {
 					});
 				}
 			});
+			tx.executeSql("SELECT kurz, name  FROM gemeinde ORDER BY name", [], function(tx,rs) {
+				for (var i = 0; i < rs.rows.length; i++) {
+					var gemeinde = rs.rows[i];
+					$('#gemeindeliste').append('<li><a href="#">'+gemeinde.kurz+' '+gemeinde.ort+'</a></li>');
+				}
+			});
 		});
 		
         app.receivedEvent('deviceready');
