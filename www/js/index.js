@@ -38,9 +38,11 @@ var app = {
     // function, we must explicity call 'app.receivedEvent(...);'
     onDeviceReady: function() {
 		// Datenbankverbindung
+		console.log('Datenbankverbindung');
 		db = window.openDataBase("Hochschulkatholik","1.0","App Datenbank",1000000);
 		
 		// Tabellen erstellen
+		console.log('Tabellen erstellen');
 		db.transaction(function(tx) {
 			tx.executeSql('CREATE TABLE IF NOT EXISTS dataInfo (id TEXT PRIMARY KEY, data TEXT)');
 			tx.executeSql('CREATE TABLE IF NOT EXISTS gemeinde (id TEXT PRIMARY KEY, kurz TEXT NOT NULL, lang TEXT NOT NULL, strasse TEXT NOT NULL, ort TEXT NOT NULL, plz TEXT NOT NULL, patron TEXT, url TEXT, lat REAL, lon REAL)');
@@ -48,9 +50,10 @@ var app = {
 		});
 		
 		// Prüfe Datenversion
+		console.log('Prüfe Datenversion');
 		db.transaction(function(tx) {
 			tx.executeSql("SELECT id FROM dataInfo WHERE id = 'version' AND data < "+dataVersion, [], function(tx,rs) {
-				if(rs.rows.length > 0) {
+				if(rs.rows.length == 0) {
 					$.get({url:'data.json', success:function(data){
 						var json = $.parseJSON(data);
 						db.transaction(function(tx) {
@@ -84,53 +87,8 @@ var app = {
 				}
 			});
 		});
-		
-        app.receivedEvent('deviceready');
-		
-    },
-    // Update DOM on a Received Event
-    receivedEvent: function(id) {
-        var parentElement = document.getElementById(id);
-        var listeningElement = parentElement.querySelector('.listening');
-        var receivedElement = parentElement.querySelector('.received');
-
-        listeningElement.setAttribute('style', 'display:none;');
-        receivedElement.setAttribute('style', 'display:block;');
-
-        console.log('Received Event: ' + id);
+        app.receivedEvent('deviceready');	
     }
 };
-
-function initDB(tx) {
-	
-}
-
-function checkVersion(tx) {
-	tx.executeSql("SELECT id FROM dataInfo WHERE id = 'version' AND data < "+dataVersion, [], checkSuccess, checkError);
-}
-
-function successCB() {}
-
-
-function errorCB(err) {
-}
-
-function checkSuccess(tx, results) {
-	if(results.rows.length > 0) {
-		initDatabase();
-	}
-}
-
-function checkError(err) {
-	initDatabase();
-}
-
-function initDatabase() {
-	$.get({url:'data.json',success:function(data){
-		var json = $.parseJSON(data);
-		
-		$('#shortlink').attr("href",json.short);
-	}});
-}
 
 app.initialize();
