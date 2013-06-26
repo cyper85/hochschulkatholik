@@ -227,6 +227,42 @@ header .icon:before {
   text-align: center;
 }
 
+@font-face {
+    font-family: 'CustomIcon';
+    src: 
+		url('fonts/customicon.svg'),
+		url('fonts/customicon.ttf'),
+		url('fonts/customicon.wot'),
+		url('fonts/customicon.eot');
+    font-weight: normal;
+    font-style: normal;
+}
+.custom-icon:before {
+color:inherit;font-weight:normal !important;font-family:'CustomIcon';
+padding-left:50%;#float:left;
+font-size: 50px;
+text-align: center;
+vertical-align:middle;
+line-height:auto;
+	text-transform: none;
+}
+
+.custom-icon.akh:before{content:'a';}
+.custom-icon.search:before{content:'S';}
+.custom-icon.star:before{content:'a';}
+.custom-icon.info:before{content:'m';}
+.custom-icon.home:before{content:'h';}
+
+.ui-navbar li .akh .ui-btn-inner {
+	padding-top:.1em;
+	padding-bottom:.1em;
+}
+.akh span span {
+	font-family:'CustomIcon';
+	text-transform: none;
+	font-size: 50px;
+	font-weight:normal !important;
+}
 
 @font-face {
     font-family: 'IcoMoon';
@@ -245,7 +281,6 @@ line-height:auto;
 }
 .icon.mini:before{font-size:20px !important;height:16px !important;width:16px !important;line-height:16px !important;}
 .icon.big:before{font-size:40px !important;height:32px !important;width:32px !important;line-height:32px !important;}
-
 
 .icon.home:before{content:'!';}
 .icon.pencil:before{content:'\22';}
