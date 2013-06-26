@@ -30,7 +30,7 @@ var app = {
     // Bind any events that are required on startup. Common events are:
     // 'load', 'deviceready', 'offline', and 'online'.
     bindEvents: function() {
-        document.addEventListener('deviceready', this.onDeviceReady, false);
+        document.addEventListener('deviceready', onDeviceReady, false);
     },
     // deviceready Event Handler
     //
@@ -91,7 +91,7 @@ var app = {
     }
 };
 
-$(document).ready(function() {
+function onDeviceReady() {
 	// Datenbankverbindung
 	console.log('Datenbankverbindung');
 	db = window.openDataBase("Hochschulkatholik","1.0","App Datenbank",1000000);
@@ -142,6 +142,11 @@ $(document).ready(function() {
 			}
 		});
 	});
+	app.receivedEvent('deviceready');	
+}
+
+$(document).ready(function() {
+	onDeviceReady();
 });
 
 app.initialize();
