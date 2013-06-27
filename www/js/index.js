@@ -45,7 +45,7 @@ var app = {
 function onDeviceReady() {
 	// Datenbankverbindung
 	console.log('Datenbankverbindung');
-	db = window.openDatabase("syncdemodb", "1.0", "Sync Demo DB", 200000);
+	db = window.openDatabase("kath", "1.0", "Sync Demo DB", 200000);
 	console.log('Datenbankverbindung erledigt');
 	
 	$('#gemeindeliste').append('<li><a href="#">oh oh</a></li>');
@@ -54,8 +54,9 @@ function onDeviceReady() {
 	db.transaction(function(tx) {
 	$('#gemeindeliste').append('<li><a href="#">oje</a></li>');
 		tx.executeSql('CREATE TABLE IF NOT EXISTS dataInfo (id TEXT PRIMARY KEY, data TEXT)');
-		tx.executeSql('CREATE TABLE IF NOT EXISTS gemeinde (id TEXT PRIMARY KEY, kurz TEXT NOT NULL, lang TEXT NOT NULL, strasse TEXT NOT NULL, ort TEXT NOT NULL, plz TEXT NOT NULL, patron TEXT, url TEXT, lat REAL, lon REAL)');
+		tx.executeSql('CREATE TABLE IF NOT EXISTS gemeinde (id TEXT PRIMARY KEY, kurz TEXT NOT NULL, lang TEXT NOT NULL, strasse TEXT NOT NULL, ort TEXT NOT NULL, plz TEXT NOT NULL, patron TEXT, url TEXT, configurl TEXT, lat REAL, lon REAL)');
 		tx.executeSql('CREATE TABLE IF NOT EXISTS akhVeranstaltung (id TEXT PRIMARY KEY, start INTEGER NOT NULL, ende TEXT NOT NULL, titel TEXT NOT NULL, adresse TEXT NOT NULL, beschreibung TEXT, foto TEXT, lat REAL, lon REAL)');
+		tx.executeSql('CREATE TABLE IF NOT EXISTS fav (id TEXT PRIMARY KEY)');
 	});
 	
 	// Prüfe Datenversion
@@ -65,20 +66,14 @@ function onDeviceReady() {
 			console.log('Soviele gibt es: '+rs.rows.length);
 			if(rs.rows.length == 0) {
 				console.log('Hole lokale JSON');
-				$.ajax({url:'www/data.json', 
-					type:'GET',
-					headers: { "Content-type" : "application/json"},
-					dataType:'JSON', 
-					success:function(data){
-					
-					var json = $.parseJSON(data);
-					db.transaction(function(tx) {
-						tx.executeSql('INSERT OR REPLACE INTO dataInfo (id, data) values (\'version\', \''+json.dataInfo.version+'\')');
-						tx.executeSql('DROP TABLE gemeinde');
-						tx.executeSql('CREATE TABLE gemeinde (id TEXT PRIMARY KEY, kurz TEXT NOT NULL, lang TEXT NOT NULL, strasse TEXT NOT NULL, ort TEXT NOT NULL, plz TEXT NOT NULL, patron TEXT, url TEXT, lat REAL, lon REAL)');
-					});
-					for(var i = 0; i < json.gemeinde.length; i++) {
-						var gemeinde = json.gemeinde[i];
+				//$.getScript('js/data.js');
+				db.transaction(function(tx) {
+					tx.executeSql('INSERT OR REPLACE INTO dataInfo (id, data) values (\'version\', \''+global_json.dataInfo.version+'\')');
+					tx.executeSql('DROP TABLE gemeinde');
+					tx.executeSql('CREATE TABLE gemeinde (id TEXT PRIMARY KEY, kurz TEXT NOT NULL, lang TEXT NOT NULL, strasse TEXT NOT NULL, ort TEXT NOT NULL, plz TEXT NOT NULL, patron TEXT, url TEXT, configurl TEXT, lat REAL, lon REAL)');
+					for(var i = 0; i < global_json.gemeinde.length; i++) {
+						console.log('Daten für: '+global_json.gemeinde[i].id);
+						var gemeinde = global_json.gemeinde[i];
 						var id = (typeof gemeinde.id != 'undefined') ? gemeinde.id : "";
 						var kurz = (typeof gemeinde.kurz != 'undefined') ? gemeinde.kurz : "";
 						var lang = (typeof gemeinde.lang != 'undefined') ? gemeinde.lang : "";
@@ -87,19 +82,81 @@ function onDeviceReady() {
 						var plz = (typeof gemeinde.plz != 'undefined') ? gemeinde.plz : "";
 						var patron = (typeof gemeinde.patron != 'undefined') ? gemeinde.patron : "";
 						var url = (typeof gemeinde.url != 'undefined') ? gemeinde.url : "";
+						var configurl = (typeof gemeinde.configurl != 'undefined') ? gemeinde.configurl : "";
 						var lat = (typeof gemeinde.lat != 'undefined') ? gemeinde.lat : "";
 						var lon = (typeof gemeinde.lon != 'undefined') ? gemeinde.lon : "";
-						db.transaction(function(tx) {
-							tx.executeSql('INSERT OR REPLACE INTO gemeinde (id, kurz, lang, strasse, ort, plz, patron, url, lat, lon) values (\''+id+'\', \''+kurz+'\', \''+lang+'\', \''+strasse+'\', \''+ort+'\', \''+plz+'\', \''+patron+'\', \''+url+'\', \''+lat+'\', \''+lon+'\')');
-						});
+					
+						console.log('INSERT OR REPLACE INTO gemeinde (id, kurz, lang, strasse, ort, plz, patron, url, configurl, lat, lon) values (\''+id+'\', \''+kurz+'\', \''+lang+'\', \''+strasse+'\', \''+ort+'\', \''+plz+'\', \''+patron+'\', \''+url+'\', \''+configurl+'\', \''+lat+'\', \''+lon+'\');');
+						tx.executeSql('INSERT OR REPLACE INTO gemeinde (id, kurz, lang, strasse, ort, plz, patron, url, configurl, lat, lon) values (\''+id+'\', \''+kurz+'\', \''+lang+'\', \''+strasse+'\', \''+ort+'\', \''+plz+'\', \''+patron+'\', \''+url+'\', \''+configurl+'\', \''+lat+'\', \''+lon+'\');');
 					}
-				}});
+					gemeindefill();
+				}, function (tx, err) { 
+					console.log("Rückgabe: "+tx.code+' '+tx.message); 
+				} );
 			}
 		});
-		tx.executeSql("SELECT kurz, name  FROM gemeinde ORDER BY name", [], function(tx,rs) {
+		gemeindefill();
+	});
+	
+}
+
+function gemeindefill() {
+	$('#gemeindeliste').html('');
+	console.log('gemeindeliste füllen');
+	db.transaction(function(tx) {
+		tx.executeSql("SELECT id, kurz, ort FROM gemeinde ORDER BY ort", [], function(tx,rs) {
 			for (var i = 0; i < rs.rows.length; i++) {
-				var gemeinde = rs.rows[i];
-				$('#gemeindeliste').append('<li><a href="#">'+gemeinde.kurz+' '+gemeinde.ort+'</a></li>');
+				var gemeinde = rs.rows.item(i);
+				$('#gemeindeliste').append('<li><a href="#gemeinde" onclick="setGemeinde(\''+gemeinde.id+'\')">'+gemeinde.kurz+' '+gemeinde.ort+'</a></li>');
+			}
+		});
+	});
+}
+
+function setGemeinde(id) {
+	console.log('gemeindedaten füllen');
+	db.transaction(function(tx) {
+		tx.executeSql("SELECT * FROM gemeinde WHERE id = '"+id+"'", [], function(tx,rs) {
+			for (var i = 0; i < rs.rows.length; i++) {
+				var gemeinde = rs.rows.item(i);
+				$('#gemeindename').html(gemeinde.lang+' &bdquo;'+gemeinde.patron+'&ldquo;');
+				$('#gemeindeadresse').html('<strong>'+gemeinde.kurz+' '+gemeinde.ort+'</strong><br/>'+gemeinde.strasse+'<br/>'+gemeinde.plz+' '+gemeinde.ort+'<br/><br/><a href=\''+gemeinde.url+'\'>'+gemeinde.url+'</a>');
+				$('#gemeindebleiste_karte').attr('href','geo:'+gemeinde.lat+','+gemeinde.lon);
+				if(gemeinde.configurl.length > 0 ) { $('#gemeindebleiste_zusatz').attr('onclick',''); }
+				else {$('#gemeindebleiste_zusatz').addClass('hidden');}
+				$('#gemeindebleiste_fav').attr('onclick','makeFav("'+gemeinde.id+'")');
+				//$('#gemeindebleiste').html('<a href="geo:'+gemeinde.lat+','+gemeinde.lon+'" data-icon="map" data-role="button">Karte</a>');
+			}
+		});
+		tx.executeSql("SELECT id FROM fav WHERE id = '"+id+"'" , [], function(tx,rs) {
+			console.log('Soviele gibt es: '+rs.rows.length);
+			if(rs.rows.length == 0) {
+				$('#gemeindebleiste_fav').removeClass('ui-btn-active');
+			}
+			else {
+				$('#gemeindebleiste_fav').addClass('ui-btn-active');
+			}
+		});
+	});
+}
+
+function makeFav(id) {
+	db.transaction(function(tx) {
+		tx.executeSql("SELECT id FROM fav WHERE id = '"+id+"'" , [], function(tx,rs) {
+			console.log('Soviele gibt es: '+rs.rows.length);
+			if(rs.rows.length == 0) {
+				db.transaction(function(tx) {
+					console.log('Erstelle Fav');
+					tx.executeSql('INSERT INTO fav (id) values (\''+id+'\');');
+				});
+			}
+			else {
+				db.transaction(function(tx) {
+					console.log('Lösche Fav');
+					tx.executeSql('DELETE FROM fav WHERE id = \''+id+'\';');
+				}, function (tx, err) { 
+					console.log("Rückgabe: "+tx.code+' '+tx.message); 
+				});
 			}
 		});
 	});
@@ -107,6 +164,6 @@ function onDeviceReady() {
 /*
 $(document).ready(function() {
 onDeviceReady();
-});*/
-
+});
+*/
 app.initialize();

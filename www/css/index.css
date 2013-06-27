@@ -247,6 +247,17 @@ line-height:auto;
 	text-transform: none;
 }
 
+.CustomIconButton {
+	color:inherit;
+	font-weight:normal !important;
+	font-family:'CustomIcon';
+	font-size: 50px;
+	text-align: center;
+	vertical-align:middle;
+	line-height:auto;
+	text-transform: none;
+}
+
 .custom-icon.akh:before{content:'a';}
 .custom-icon.search:before{content:'S';}
 .custom-icon.star:before{content:'a';}
@@ -339,3 +350,8 @@ line-height:auto;
 .icon.busy:before{content:'W';}
 .icon.bug:before{content:'X';}
 .icon.lamp:before{content:'Y';}
+
+
+.hidden {
+	display:none;
+}
