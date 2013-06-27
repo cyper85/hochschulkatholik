@@ -104,9 +104,9 @@ function onDeviceReady() {
 		});
 	});
 }
-
+/*
 $(document).ready(function() {
 onDeviceReady();
-});
+});*/
 
 app.initialize();
