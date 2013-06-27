@@ -264,6 +264,38 @@ line-height:auto;
 .custom-icon.info:before{content:'m';}
 .custom-icon.home:before{content:'h';}
 
+.iconMail:before{
+	font-family:'CustomIcon';
+	text-transform: none;
+	font-size: 30px;
+	font-weight:normal !important;
+	content:'m';
+}
+.iconTel:before{
+	font-family:'CustomIcon';
+	text-transform: none;
+	font-size: 30px;
+	font-weight:normal !important;
+	content:'P';
+}
+.iconPlace:before{
+	font-family:'CustomIcon';
+	text-transform: none;
+	font-size: 30px;
+	font-weight:normal !important;
+	content:'p';
+}
+
+.ksglogo{
+	font-family:'CustomIcon';
+	text-transform: none;
+	font-size: 100px;
+	font-weight:normal !important;
+	content:'p';
+	float:left;
+}
+
+
 .ui-navbar li .akh .ui-btn-inner {
 	padding-top:.8em;
 	padding-bottom:.8em;

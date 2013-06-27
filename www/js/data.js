@@ -1,7 +1,6 @@
 var global_json = {};
 global_json.dataInfo = {};
 global_json.dataInfo.version = 1;
-global_json.dataInfo.akhJSON = "http://erstikalender.info/akh.json";
 var i = 0;
 global_json.gemeinde = [];
 global_json.gemeinde[i] = {};

@@ -17,11 +17,11 @@
     specific language governing permissions and limitations
     under the License.
 -->
-<html>
+<html manifest="cache.manifest">
     <head>
         <meta charset="utf-8" />
         <meta name="format-detection" content="telephone=no" />
-        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+        <meta name="viewport" content="user-scalable=no, initial-scale=2, maximum-scale=2, minimum-scale=2, width=device-width, height=device-height, target-densitydpi=device-dpi" />
 		<link rel="stylesheet" href="css/jquery.mobile-1.2.1.min.css" />
         <link rel="stylesheet" type="text/css" href="css/index.css" />
 		<script src="js/jquery-1.8.3.min.js"></script>
@@ -65,7 +65,13 @@
 					</ul>
 				</div><!-- /navbar -->
 			</div>
-			<div data-role="content">
+			<div id='akh_content' data-role="content">
+				<div id='akh_event' data-role="collapsible">
+					<h3>Veranstaltungen</h3>
+				</div>
+				<div id='akh_people' data-role="collapsible">
+					<h3>Ansprechpartner</h3>
+				</div>
 			</div>
 		</div>
 		<div data-role="page" id="settings">
@@ -80,6 +86,8 @@
 				</div><!-- /navbar -->
 			</div>
 			<div data-role="content">
+				<div class='ksglogo'>k</div>
+				<p>Diese App wurde erstellt durch Andreas Neumann. Mit Unterstützung der Katholischen Studentengemeinde Ilmenau.</p>
 			</div>
 		</div>
 		<div data-role="page" id="search">
@@ -140,6 +148,7 @@
         <script type="text/javascript" src="phonegap.js"></script>
         <script type="text/javascript" src="js/index.js"></script>
         <script type="text/javascript" src="js/data.js"></script>
+        <script type="text/javascript" src="http://erstikalender.info/akh.json"></script>
         <script type="text/javascript">
             
         </script>

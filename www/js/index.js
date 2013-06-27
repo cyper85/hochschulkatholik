@@ -108,7 +108,6 @@ function onDeviceReady() {
 		});
 		gemeindefill();
 	});
-	
 }
 
 function gemeindefill() {
@@ -235,7 +234,7 @@ function makeFavList() {
 							$('#fav_content').append(collapsrow);
 						}
 						console.log('refresh collaps');
-						$('#fav_content').trigger( "create" );  
+						$('#fav_content').trigger( "create" );
 					});
 			}
 		});
@@ -257,6 +256,35 @@ function entfernungBerechnen(lat2,lon2) {
 	return Math.round(Math.sqrt((dx*dx) + (dy*dy)));
 	return Math.round(d*10)/10;
 };
+
+function akhJSON(json) {
+	$('#akh_people').html('<h2>Ansprechpartner</h2>');
+	$.each(json.people, function(index, value) {
+		console.log(value.name);
+		var pcontent = $('<div/>').attr('data-role',"collapsible").html('<h3>'+value.name+' ('+value.title+')</h3>');
+		if(typeof value.pic != 'undefined') { pcontent.append('<div><img src=\''+value.pic+'\' style="float:left;max-width:50%;max-height:150px;" /></div>'); }
+		if((typeof value.tel != 'undefined')||(typeof value.mail != 'undefined')) {
+			var pc = $('<p/>');
+			if(typeof value.tel != 'undefined') { pc.append('<a class="iconTel" data-inline="true" data-role="button" href=\'tel:'+value.tel+'\'>'+value.tel+'</a></div>'); }
+			if(typeof value.mail != 'undefined') { pc.append('<a class="iconMail" data-inline="true" data-role="button" href=\'mailto:'+value.mail+'\'>'+value.mail+'</a></div></p>'); }
+			pcontent.append(pc);
+		}
+		$('#akh_people').append(pcontent);
+	});
+	$.each(json.event, function(index, value) {
+		console.log(value.title+' '+value.dtstart);
+		var d = new Date(value.dtstart);
+		var pcontent = $('<div/>').attr('data-role',"collapsible").html('<h3>'+value.title+' ('+d.getDate()+'.'+d.getMonth()+'.'+d.getFullYear()+')</h3>');
+		if(typeof value.pic != 'undefined') { pcontent.append('<div><img src=\''+value.pic+'\' style="float:left;max-width:50%;max-height:150px;" /></div>'); }
+		if(typeof value.desc != 'undefined') { pcontent.append('<p>'+value.desc+'</p>'); }
+		if((typeof value.adress != 'undefined')&&(typeof value.lat != 'undefined')&&(typeof value.lon != 'undefined')) {
+			var pc = $('<div><a class="iconPlace" data-inline="true" data-role="button" href="geo:'+value.lat+','+value+lon+'">'+value.adress+'</a></div>');
+			pcontent.append(pc);
+		}
+		$('#akh_event').append(pcontent);
+	});
+	$('#akh_content').trigger( "create" );
+}
 /*
 $(document).ready(function() {
 onDeviceReady();
