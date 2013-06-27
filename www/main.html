@@ -33,25 +33,35 @@
 			<div data-theme="a" data-role="header">
 				<div data-role="navbar">
 					<ul>
-						<li><a href='#fav' data-icon="star">Favoriten</a></li>
-						<li><a href='#search' data-icon="search">Suche</a></li>
-						<li><a href='#akh'  data-icon="" class='akh'>a</a></li>
-						<li><a href='#settings' data-icon="info">Info</a></li>
+						<li><a href='#fav' data-icon="" class='akh'>s</a></li>
+						<li><a href='#search' data-icon="" class='akh'>S</a></li>
+						<li><a href='#akh'  data-icon="" class='akh big'>a</a></li>
+						<li><a href='#settings' data-icon="" class='akh'>i</a></li>
 					</ul>
 				</div><!-- /navbar -->
 			</div>
 			<div data-role="content">
 				<h1>HochschulKatholik</h1>
+				<p>Nächste Hochschulgemeinde:</p>
+				
+				<h2 id='maingemeindename'></h2>
+				<p id='maingemeindeadresse'></p>
+				<div data-role="controlgroup" id='maingemeindebleiste' data-type='horizontal'>
+					<a href='geo:' class='CustomIconButton' id='maingemeindebleiste_karte' data-role="button">p</a>
+					<a href='#' id='maingemeindebleiste_zusatz' onclick='' class='CustomIconButton' data-role="button">i</a>
+					<a href='#fav' id='maingemeindebleiste_fav' onclick='' class='CustomIconButton' data-role="button">s</a>
+				</div>
+				<div id='maingemeindezusatz' class='hidden'></div>
 			</div>
 		</div>
 		<div data-role="page" id="akh">
 			<div data-theme="a" data-role="header">
 				<div data-role="navbar">
 					<ul>
-						<li><a href='#fav' data-icon="star">Favoriten</a></li>
-						<li><a href='#search' data-icon="search">Suche</a></li>
-						<li><a href='#settings' data-icon="info">Info</a></li>
-						<li><a href='#home' data-icon="home">Home</a></li>
+						<li><a href='#fav' data-icon="" class='akh'>s</a></li>
+						<li><a href='#search' data-icon="" class='akh'>S</a></li>
+						<li><a href='#settings' data-icon="" class='akh'>i</a></li>
+						<li><a href='#home' data-icon="" class='akh'>h</a></li>
 					</ul>
 				</div><!-- /navbar -->
 			</div>
@@ -62,10 +72,10 @@
 			<div data-theme="a" data-role="header">
 				<div data-role="navbar">
 					<ul>
-						<li><a href='#fav' data-icon="star">Favoriten</a></li>
-						<li><a href='#search' data-icon="search">Suche</a></li>
-						<li><a href='#akh'  data-icon="" class='akh'>a</a></li>
-						<li><a href='#home' data-icon="home">Home</a></li>
+						<li><a href='#fav' data-icon="" class='akh'>s</a></li>
+						<li><a href='#search' data-icon="" class='akh'>S</a></li>
+						<li><a href='#akh'  data-icon="" class='akh big'>a</a></li>
+						<li><a href='#home' data-icon="" class='akh'>h</a></li>
 					</ul>
 				</div><!-- /navbar -->
 			</div>
@@ -76,10 +86,10 @@
 			<div data-theme="a" data-role="header">
 				<div data-role="navbar">
 					<ul>
-						<li><a href='#fav' data-icon="star">Favoriten</a></li>
-						<li><a href='#akh'  data-icon="" class='akh'>a</a></li>
-						<li><a href='#settings' data-icon="info">Info</a></li>
-						<li><a href='#home' data-icon="home">Home</a></li>
+						<li><a href='#fav' data-icon="" class='akh'>s</a></li>
+						<li><a href='#akh'  data-icon="" class='akh big'>a</a></li>
+						<li><a href='#settings' data-icon="" class='akh'>i</a></li>
+						<li><a href='#home' data-icon="" class='akh'>h</a></li>
 					</ul>
 				</div><!-- /navbar -->
 			</div>
@@ -93,24 +103,25 @@
 			<div data-theme="a" data-role="header">
 				<div data-role="navbar">
 					<ul>
-						<li><a href='#search' data-icon="search">Suche</a></li>
-						<li><a href='#akh'  data-icon="" class='akh'>a</a></li>
-						<li><a href='#settings' data-icon="info">Info</a></li>
-						<li><a href='#home' data-icon="home">Home</a></li>
+						<li><a href='#search' data-icon="" class='akh'>S</a></li>
+						<li><a href='#akh'  data-icon="" class='akh big'>a</a></li>
+						<li><a href='#settings' data-icon="" class='akh'>i</a></li>
+						<li><a href='#home' data-icon="" class='akh'>h</a></li>
 					</ul>
 				</div><!-- /navbar -->
 			</div>
-			<div data-role="content">
+			<div id='fav_content' data-role="content">
+			
 			</div>
 		</div>
 		<div data-role="page" id="gemeinde">
 			<div data-theme="a" data-role="header">
 				<div data-role="navbar">
 					<ul>
-						<li><a href='#search' data-icon="search">Suche</a></li>
-						<li><a href='#akh' data-icon="" class='akh'>a</a></li>
-						<li><a href='#settings' data-icon="info">Info</a></li>
-						<li><a href='#home' data-icon="home">Home</a></li>
+						<li><a href='#search' data-icon="" class='akh'>S</a></li>
+						<li><a href='#akh'  data-icon="" class='akh big'>a</a></li>
+						<li><a href='#settings' data-icon="" class='akh'>i</a></li>
+						<li><a href='#home' data-icon="" class='akh'>h</a></li>
 					</ul>
 				</div><!-- /navbar -->
 			</div>

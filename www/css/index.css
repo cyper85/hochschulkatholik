@@ -265,14 +265,21 @@ line-height:auto;
 .custom-icon.home:before{content:'h';}
 
 .ui-navbar li .akh .ui-btn-inner {
-	padding-top:.1em;
-	padding-bottom:.1em;
+	padding-top:.8em;
+	padding-bottom:.8em;
 }
 .akh span span {
 	font-family:'CustomIcon';
 	text-transform: none;
-	font-size: 50px;
+	font-size: 30px;
 	font-weight:normal !important;
+}
+.ui-navbar li .akh.big .ui-btn-inner {
+	padding-top:.1em;
+	padding-bottom:.1em;
+}
+.akh.big span span {
+	font-size: 50px;
 }
 
 @font-face {
