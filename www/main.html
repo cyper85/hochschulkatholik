@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<!--
+    Licensed to the Apache Software Foundation (ASF) under one
+    or more contributor license agreements.  See the NOTICE file
+    distributed with this work for additional information
+    regarding copyright ownership.  The ASF licenses this file
+    to you under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance
+    with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the License is distributed on an
+    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+     KIND, either express or implied.  See the License for the
+    specific language governing permissions and limitations
+    under the License.
+-->
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+		<link rel="stylesheet" href="css/jquery.mobile-1.2.1.min.css" />
+        <link rel="stylesheet" type="text/css" href="css/index.css" />
+		<script src="js/jquery-1.8.3.min.js"></script>
+		<script src="js/jquery.mobile-1.2.1.min.js"></script>
+        <title>HochschulKatholik</title>
+    </head>
+    <body>
+		<div data-role="page" id="home">
+			<div data-theme="a" data-role="header">
+				<div data-role="navbar">
+					<ul>
+						<li><a href='#fav' data-icon="star">Favoriten</a></li>
+						<li><a href='#search' data-icon="search">Suche</a></li>
+						<li><a href='#akh'  data-icon="" class='akh'>a</a></li>
+						<li><a href='#settings' data-icon="info">Info</a></li>
+					</ul>
+				</div><!-- /navbar -->
+			</div>
+			<div data-role="content">
+				<h1>HochschulKatholik</h1>
+			</div>
+		</div>
+		<div data-role="page" id="akh">
+			<div data-theme="a" data-role="header">
+				<div data-role="navbar">
+					<ul>
+						<li><a href='#fav' data-icon="star">Favoriten</a></li>
+						<li><a href='#search' data-icon="search">Suche</a></li>
+						<li><a href='#settings' data-icon="info">Info</a></li>
+						<li><a href='#home' data-icon="home">Home</a></li>
+					</ul>
+				</div><!-- /navbar -->
+			</div>
+			<div data-role="content">
+			</div>
+		</div>
+		<div data-role="page" id="settings">
+			<div data-theme="a" data-role="header">
+				<div data-role="navbar">
+					<ul>
+						<li><a href='#fav' data-icon="star">Favoriten</a></li>
+						<li><a href='#search' data-icon="search">Suche</a></li>
+						<li><a href='#akh'  data-icon="" class='akh'>a</a></li>
+						<li><a href='#home' data-icon="home">Home</a></li>
+					</ul>
+				</div><!-- /navbar -->
+			</div>
+			<div data-role="content">
+			</div>
+		</div>
+		<div data-role="page" id="search">
+			<div data-theme="a" data-role="header">
+				<div data-role="navbar">
+					<ul>
+						<li><a href='#fav' data-icon="star">Favoriten</a></li>
+						<li><a href='#akh'  data-icon="" class='akh'>a</a></li>
+						<li><a href='#settings' data-icon="info">Info</a></li>
+						<li><a href='#home' data-icon="home">Home</a></li>
+					</ul>
+				</div><!-- /navbar -->
+			</div>
+			<div data-role="content">
+				<ul data-filter-placeholder="Ort" id='gemeindeliste' data-role="listview" data-filter="true">
+					
+				</ul>
+			</div>
+		</div>
+		<div data-role="page" id="fav">
+			<div data-theme="a" data-role="header">
+				<div data-role="navbar">
+					<ul>
+						<li><a href='#search' data-icon="search">Suche</a></li>
+						<li><a href='#akh'  data-icon="" class='akh'>a</a></li>
+						<li><a href='#settings' data-icon="info">Info</a></li>
+						<li><a href='#home' data-icon="home">Home</a></li>
+					</ul>
+				</div><!-- /navbar -->
+			</div>
+			<div data-role="content">
+			</div>
+		</div>
+		<div data-role="page" id="gemeinde">
+			<div data-theme="a" data-role="header">
+				<div data-role="navbar">
+					<ul>
+						<li><a href='#search' data-icon="search">Suche</a></li>
+						<li><a href='#akh' data-icon="" class='akh'>a</a></li>
+						<li><a href='#settings' data-icon="info">Info</a></li>
+						<li><a href='#home' data-icon="home">Home</a></li>
+					</ul>
+				</div><!-- /navbar -->
+			</div>
+			<div data-role="content">
+				<h1 id='gemeindename'></h1>
+				<p id='gemeindeadresse'></p>
+				<div data-role="controlgroup" id='gemeindebleiste' data-type='horizontal'>
+					<a href='geo:' class='CustomIconButton' id='gemeindebleiste_karte' data-role="button">p</a>
+					<a href='#' id='gemeindebleiste_zusatz' onclick='' class='CustomIconButton' data-role="button">i</a>
+					<a href='#fav' id='gemeindebleiste_fav' onclick='' class='CustomIconButton' data-role="button">s</a>
+				</div>
+				<div id='gemeindezusatz' class='hidden'></div>
+			</div>
+		</div>
+
+        <script type="text/javascript" src="phonegap.js"></script>
+        <script type="text/javascript" src="js/index.js"></script>
+        <script type="text/javascript" src="js/data.js"></script>
+        <script type="text/javascript">
+            
+        </script>
+    </body>
+</html>
