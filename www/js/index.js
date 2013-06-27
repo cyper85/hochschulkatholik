@@ -65,11 +65,12 @@ function onDeviceReady() {
 			console.log('Soviele gibt es: '+rs.rows.length);
 			if(rs.rows.length == 0) {
 				console.log('Hole lokale JSON');
-				$.ajax({url:'data.json', type:'GET',
-    headers: { 
-   "Content-type" : "application/json"
-},
-    dataType:'JSON', success:function(data){
+				$.ajax({url:'www/data.json', 
+					type:'GET',
+					headers: { "Content-type" : "application/json"},
+					dataType:'JSON', 
+					success:function(data){
+					
 					var json = $.parseJSON(data);
 					db.transaction(function(tx) {
 						tx.executeSql('INSERT OR REPLACE INTO dataInfo (id, data) values (\'version\', \''+json.dataInfo.version+'\')');
