@@ -264,26 +264,67 @@ line-height:auto;
 .custom-icon.info:before{content:'m';}
 .custom-icon.home:before{content:'h';}
 
-.iconMail:before{
+.iconMail span span:before{
 	font-family:'CustomIcon';
 	text-transform: none;
-	font-size: 30px;
+	font-size: 20px;
 	font-weight:normal !important;
 	content:'m';
+	margin-right:5px;
 }
-.iconTel:before{
+.iconTel span span:before{
 	font-family:'CustomIcon';
 	text-transform: none;
-	font-size: 30px;
+	font-size: 20px;
 	font-weight:normal !important;
 	content:'P';
+	margin-right:5px;
 }
-.iconPlace:before{
+.iconMobil span span:before{
 	font-family:'CustomIcon';
 	text-transform: none;
-	font-size: 30px;
+	font-size: 20px;
+	font-weight:normal !important;
+	content:'M';
+	margin-right:5px;
+}
+.iconPlace span span:before{
+	font-family:'CustomIcon';
+	text-transform: none;
+	font-size: 20px;
 	font-weight:normal !important;
 	content:'p';
+	margin-right:5px;
+}
+.iconFacebook span span:before{
+	font-family:'CustomIcon';
+	text-transform: none;
+	font-size: 20px;
+	font-weight:normal !important;
+	content:'f';
+}
+.iconGoogle span span:before{
+	font-family:'CustomIcon';
+	text-transform: none;
+	font-size: 20px;
+	font-weight:normal !important;
+	content:'g';
+}
+.iconWWW span span:before{
+	font-family:'CustomIcon';
+	text-transform: none;
+	font-size: 20px;
+	font-weight:normal !important;
+	content:'w';
+	margin-right:5px;
+}
+.iconCosts span span:before{
+	font-family:'CustomIcon';
+	text-transform: none;
+	font-size: 20px;
+	font-weight:normal !important;
+	content:'c';
+	margin-right:5px;
 }
 
 .ksglogo{
