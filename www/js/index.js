@@ -19,8 +19,26 @@
 
 var db = {};
 var dataversion = '1';
-var lat = 50;
-var lon = 10;
+var lat = 50.71860920392487;
+var lon = 10.88554345;
+
+function isset(object) {
+	if(typeof object === 'undefined') {
+		return false;
+	}
+	if(typeof object === null) {
+		return false;
+	}
+	return true;
+}
+
+function htmlentities(value){
+    if (value) {
+        return $('<div />').text(value).html();
+    } else {
+        return '';
+    }
+}
 
 dataImport = function(data,id) {
 	console.log(id + " ZusatzdatenImport");
@@ -33,84 +51,97 @@ dataImport = function(data,id) {
 		tx.executeSql('DELETE FROM place WHERE id = \''+id+'\';');
 		
 		// Zusatzdaten
-		if((typeof data.additional != 'undefined')&&(data.additional.length > 0)) {
-			if(typeof data.additional.url != 'undefined') { tx.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);", [id,'url',data.additional.url]); }
-			if(typeof data.additional.facebook != 'undefined') { tx.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);",[id,'facebook',data.additional.facebook]); }
-			if(typeof data.additional.twitter != 'undefined') { tx.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);",[id,'twitter',data.additional.twitter]); }
-			if(typeof data.additional.google != 'undefined') { tx.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);",[id,'google',data.additional.google]); }
-			if(typeof data.additional.logo != 'undefined') { tx.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);",[id,'logo',data.additional.logo]); }
+		if(isset(data.additional) && data.additional.length > 0) {
+			if(isset(data.additional.url)) { tx.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);", [id,'url',htmlentities(data.additional.url)]); }
+			if(isset(data.additional.facebook)) { tx.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);",[id,'facebook',htmlentities(data.additional.facebook)]); }
+			if(isset(data.additional.twitter)) { tx.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);",[id,'twitter',htmlentities(data.additional.twitter)]); }
+			if(isset(data.additional.google)) { tx.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);",[id,'google',htmlentities(data.additional.google)]); }
+			if(isset(data.additional.logo)) { tx.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);",[id,'logo',htmlentities(data.additional.logo)]); }
 		}
 		
 		// Ansprechpartner
-		if((typeof data.people != 'undefined')&&(data.people.length > 0)) {
+		if(isset(data.people) && (data.people.length > 0)) {
 			for(var i = 0; i < data.people.length; i++) {
 				var people = data.people[i];
-				if(typeof people.name != 'undefined') {
-					var name = people.name;
-					var adresse = (typeof people.adresse != 'undefined') ? people.adresse : null;
-					var lat = (typeof people.lat != 'undefined') ? people.lat : null;
-					var lon = (typeof people.lon != 'undefined') ? people.lon : null;
-					var email = (typeof people.mail != 'undefined') ? people.mail : null;
-					var tel = (typeof people.tel != 'undefined') ? people.tel : null;
-					var fax = (typeof people.fax != 'undefined') ? people.fax : null;
-					var facebook = (typeof people.facebook != 'undefined') ? people.facebook : null;
-					var twitter = (typeof people.twitter != 'undefined') ? people.twitter : null;
-					var google = (typeof people.google != 'undefined') ? people.google : null;
-					var mobil = (typeof people.mobil != 'undefined') ? people.mobil : null;
-					var pic = (typeof people.pic != 'undefined') ? people.pic : null;
-					var title = (typeof people.title != 'undefined') ? people.title : null;
-					var desc = (typeof people.desc != 'undefined') ? people.desc : null;
+				if(isset(people.name)) {
+					var name = htmlentities(people.name);
+					var adresse = isset(people.adresse) ? htmlentities(people.adresse) : null;
+					var lat = isset(people.lat) ? htmlentities(people.lat) : null;
+					var lon = isset(people.lon) ? htmlentities(people.lon) : null;
+					var email = isset(people.mail) ? htmlentities(people.mail) : null;
+					var tel = isset(people.tel) ? htmlentities(people.tel) : null;
+					var fax = isset(people.fax) ? htmlentities(people.fax) : null;
+					var facebook = isset(people.facebook) ? htmlentities(people.facebook) : null;
+					var twitter = isset(people.twitter) ? htmlentities(people.twitter) : null;
+					var google = isset(people.google) ? htmlentities(people.google) : null;
+					var mobil = isset(people.mobil) ? htmlentities(people.mobil) : null;
+					var pic = isset(people.pic) ? htmlentities(people.pic) : null;
+					var title = isset(people.title) ? htmlentities(people.title) : null;
+					var desc = isset(people.desc) ? htmlentities(people.desc) : null;
+					if(isset(people.dend)) {
+						var now = new Date();
+						if(now > people.dend*1000) { continue; }
+					}
 					tx.executeSql("INSERT INTO people (id,name,adresse,lat,lon,email,telefon,fax,mobil,facebook,twitter,google,pic,position,desc) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);",[id,name,adresse,lat,lon,email,tel,fax,mobil,facebook,twitter,google,pic,title,desc]);
 				}
 			}
 		}
 		
 		// Veranstaltungen
-		if((typeof data.event != 'undefined')&&(data.event.length > 0)) {
+		if(isset(data.event)&&(data.event.length > 0)) {
 			for(var i = 0; i < data.event.length; i++) {
 				var event = data.event[i];
-				if((typeof event.title != 'undefined')&&(typeof event.dtstart != 'undefined')) {
-					var title = event.title;
+				if(isset(event.title) && isset(event.dtstart)) {
+					var title = htmlentities(event.title);
 					var dtstart = event.dtstart;
-					var dtend = (typeof event.dtend != 'undefined') ? event.dtend : event.dtstart;
-					var recurrence = (typeof event.recurrence != 'undefined') ? event.recurrence : null;
-					var rend = (typeof event.rend != 'undefined') ? event.rend : event.dtstart;
-					var desc = (typeof event.desc != 'undefined') ? event.desc : null;
-					var costs = (typeof event.costs != 'undefined') ? event.costs : null;
-					var url = (typeof event.url != 'undefined') ? event.url : null;
-					var pic = (typeof event.pic != 'undefined') ? event.pic : null;
-					var facebook = (typeof event.facebook != 'undefined') ? event.facebook : null;
-					var google = (typeof event.google != 'undefined') ? event.google : null;
-					var adress = (typeof event.adress != 'undefined') ? event.adress : null;
-					var summary = (typeof event.summary != 'undefined') ? event.summary : null;
-					var lat = (typeof event.lat != 'undefined') ? event.lat : null;
-					var lon = (typeof event.lon != 'undefined') ? event.lon : null;
+					var dtend = isset(event.dtend) ? event.dtend : event.dtstart;
+					var recurrence = isset(event.recurrence) ? event.recurrence : null;
+					var rend = isset(event.rend) ? event.rend : event.dtstart;
+					var desc = isset(event.desc) ? htmlentities(event.desc) : null;
+					var costs = isset(event.costs) ? htmlentities(event.costs) : null;
+					var url = isset(event.url) ? htmlentities(event.url) : null;
+					var pic = isset(event.pic) ? htmlentities(event.pic) : null;
+					var facebook = isset(event.facebook) ? htmlentities(event.facebook) : null;
+					var google = isset(event.google) ? htmlentities(event.google) : null;
+					var adress = isset(event.adress) ? htmlentities(event.adress) : null;
+					var summary = isset(event.summary) ? htmlentities(event.summary) : null;
+					var lat = isset(event.lat) ? htmlentities(event.lat) : null;
+					var lon = isset(event.lon) ? htmlentities(event.lon) : null;
 					var jetzt = new Date();
 					//console.log([id,id+"-"+i,title,summary,adress,lat,lon,facebook,google,pic,url,costs,0,dtstart,dtend,recurrence,rend,jetzt.getTime()]);
-					if((jetzt.getTime() < dtend*1000)||(jetzt.getTime() < rend*1000)||((typeof event.recurrence != 'undefined')&&(typeof event.rend == 'undefined'))) {
+					if((jetzt.getTime() < dtend*1000)||(jetzt.getTime() < rend*1000)||(isset(event.recurrence)&&!isset(event.rend))) {
 						console.log('insert into db');
 						tx.executeSql("INSERT INTO event (id, eid, title, summary, adress, lat, lon, facebook, google, pic, url, costs, subevent, dtstart, dtend, recurrence, rend) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);",[id,id+"-"+i,title,summary,adress,lat,lon,facebook,google,pic,url,costs,'root',dtstart,dtend,recurrence,rend]);
-						if((typeof event.subevent != 'undefined')&&(event.subevent.length>0)) {
+						if(isset(event.subevent)&&(event.subevent.length>0)) {
 							for(var j = 0; j < event.subevent.length; j++) {
 								var subevent = event.subevent[j];
-								if((typeof subevent.title != 'undefined')&&(typeof subevent.dtstart != 'undefined')) {
-									var stitle = subevent.title;
-									var sdtstart = subevent.dtstart;
-									var sdtend = (typeof subevent.dtend != 'undefined') ? subevent.dtend : subevent.dtstart;
-									var srecurrence = (typeof subevent.recurrence != 'undefined') ? subevent.recurrence : null;
-									var srend = (typeof subevent.rend != 'undefined') ? subevent.rend : subevent.dtstart;
-									var sdesc = (typeof subevent.desc != 'undefined') ? subevent.desc : null;
-									var scosts = (typeof subevent.costs != 'undefined') ? subevent.costs : null;
-									var surl = (typeof subevent.url != 'undefined') ? subevent.url : null;
-									var spic = (typeof subevent.pic != 'undefined') ? subevent.pic : null;
-									var sfacebook = (typeof subevent.facebook != 'undefined') ? subevent.facebook : null;
-									var sgoogle = (typeof subevent.google != 'undefined') ? subevent.google : null;
-									var sadress = (typeof subevent.adress != 'undefined') ? subevent.adress : null;
-									var ssummary = (typeof subevent.summary != 'undefined') ? subevent.summary : null;
-									var slat = (typeof subevent.lat != 'undefined') ? subevent.lat : null;
-									var slon = (typeof subevent.lon != 'undefined') ? subevent.lon : null;
-									if((jetzt.getTime() < sdtend*1000)||(jetzt.getTime() < srend*1000)||((typeof subevent.recurrence != 'undefined')&&(typeof subevent.rend == 'undefined'))) {
-										tx.executeSql("INSERT INTO event (id, eid, title, summary, adress, lat, lon, facebook, google, pic, url, costs, subevent, dtstart, dtend, recurrence, rend) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);",[id,id+"-"+i+"-"+j,stitle,ssummary,sadress,slat,slon,sfacebook,sgoogle,spic,surl,scosts,id+"-"+i,sdtstart,sdtend,srecurrence,srend]);
+								if(isset(subevent.title) && isset(subevent.dtstart)) {
+									var stitle = htmlentities(subevent.title);
+									var sdtstart = (subevent.dtstart > event.dtstart ) ? ((subevent.dtstart > event.dtend ) ? (htmlentities(subevent.dtstart)) : htmlentities(event.dtstart)) : htmlentities(event.dtstart);
+									var sdtstart = dtstart;
+									if(subevent.dtstart < event.dtstart) { sdtstart = dtstart; }
+										else { if(subevent.dtstart > event.dtend) { sdtstart = dtend; }
+											sdtstart = htmlentities(subevent.dtstart);
+										}
+									var sdtend = sdtstart;
+									if(isset(subevent.dtend)) {
+										if(subevent.dtend < subevent.dtstart) { sdtend = sdtstart; }
+										else {	if(subevent.dtend > event.dtend) { sdtend = dtend; }
+											sdtend = htmlentities(subevent.dtend);
+										}
+									}
+									var sdesc = isset(subevent.desc) ? htmlentities(subevent.desc) : null;
+									var scosts = isset(subevent.costs) ? htmlentities(subevent.costs) : null;
+									var surl = isset(subevent.url) ? htmlentities(subevent.url) : null;
+									var spic = isset(subevent.pic) ? htmlentities(subevent.pic) : null;
+									var sfacebook = isset(subevent.facebook) ? htmlentities(subevent.facebook) : null;
+									var sgoogle = isset(subevent.google) ? htmlentities(subevent.google) : null;
+									var sadress = isset(subevent.adress) ? htmlentities(subevent.adress) : null;
+									var ssummary = isset(subevent.summary) ? htmlentities(subevent.summary) : null;
+									var slat = isset(subevent.lat) ? htmlentities(subevent.lat) : null;
+									var slon = isset(subevent.lon) ? htmlentities(subevent.lon) : null;
+									if((jetzt.getTime() < sdtend*1000)||(jetzt.getTime() < srend*1000)) {
+										tx.executeSql("INSERT INTO event (id, eid, title, summary, adress, lat, lon, facebook, google, pic, url, costs, subevent, dtstart, dtend, recurrence, rend) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);",[id,id+"-"+i+"-"+j,stitle,ssummary,sadress,slat,slon,sfacebook,sgoogle,spic,surl,scosts,id+"-"+i,sdtstart,sdtend,null,null]);
 									}
 								}
 							}
@@ -121,19 +152,19 @@ dataImport = function(data,id) {
 		}
 		
 		// Orte
-		if((typeof data.place != 'undefined')&&(data.place.length > 0)) {
+		if(isset(data.place)&&(data.place.length > 0)) {
 			for(var i = 0; i < data.place.length; i++) {
 				var place = data.place[i];
-				if (typeof place.name != 'undefined') {
-					var name = place.name;
-					var adresse = (typeof place.adresse != 'undefined') ? place.adresse : null;
-					var lat = (typeof place.lat != 'undefined') ? place.lat : null;
-					var lon = (typeof place.lon != 'undefined') ? place.lon : null;
-					var email = (typeof place.email != 'undefined') ? place.email : null;
-					var telefon = (typeof place.telefon != 'undefined') ? place.telefon : null;
-					var fax = (typeof place.fax != 'undefined') ? place.fax : null;
-					var pic = (typeof place.pic != 'undefined') ? place.pic : null;
-					var desc = (typeof place.desc != 'undefined') ? place.desc : null;
+				if (isset(place.name)) {
+					var name = htmlentities(place.name);
+					var adresse = isset(place.adresse) ? htmlentities(place.adresse) : null;
+					var lat = isset(place.lat) ? htmlentities(place.lat) : null;
+					var lon = isset(place.lon) ? htmlentities(place.lon) : null;
+					var email = isset(place.email) ? htmlentities(place.email) : null;
+					var telefon = isset(place.telefon) ? htmlentities(place.telefon) : null;
+					var fax = isset(place.fax) ? htmlentities(place.fax) : null;
+					var pic = isset(place.pic) ? htmlentities(place.pic) : null;
+					var desc = isset(place.desc) ? htmlentities(place.desc) : null;
 					tx.executeSql("INSERT INTO place (id,name,adresse,lat,lon,email,telefon,fax,pic,position,desc) VALUES (?,?,?,?,?,?,?,?,?,?,?);",[id,name,adresse,lat,lon,email,telefon,fax,pic,desc]);
 				}
 			}
@@ -343,11 +374,18 @@ var app = {
 function geolocationSuccess(position) {
 	lat = position.coords.latitude;
 	lon = position.coords.longitude;
+	localStorage.setItem("lat", lat);
+	localStorage.setItem("lon", lon);
+	console.log('lat: '+lat);
+	gemeindefill();
 }
 
 function onDeviceReady() {
 	// Geo-Daten
-	//console.log('Position ermitteln');
+	if(localStorage.getItem("lat")) {
+		lat = localStorage.getItem("lat");
+		lon = localStorage.getItem("lon");
+	}
 	navigator.geolocation.getCurrentPosition(geolocationSuccess);
 	
 	// Datenbankverbindung
@@ -381,20 +419,21 @@ function onDeviceReady() {
 					tx.executeSql('INSERT OR REPLACE INTO dataInfo (id, data) values (\'version\', \''+global_json.dataInfo.version+'\')');
 					tx.executeSql('DROP TABLE gemeinde');
 					tx.executeSql('CREATE TABLE gemeinde (id TEXT PRIMARY KEY, kurz TEXT NOT NULL, lang TEXT NOT NULL, strasse TEXT NOT NULL, ort TEXT NOT NULL, plz TEXT NOT NULL, patron TEXT, url TEXT, configurl TEXT, lat REAL, lon REAL)');
+					console.log(global_json);
 					for(var i = 0; i < global_json.gemeinde.length; i++) {
-	//					console.log('Daten für: '+global_json.gemeinde[i].id);
 						var gemeinde = global_json.gemeinde[i];
-						var id = (typeof gemeinde.id != 'undefined') ? gemeinde.id : "";
-						var kurz = (typeof gemeinde.kurz != 'undefined') ? gemeinde.kurz : "";
-						var lang = (typeof gemeinde.lang != 'undefined') ? gemeinde.lang : "";
-						var strasse = (typeof gemeinde.strasse != 'undefined') ? gemeinde.strasse : "";
-						var ort = (typeof gemeinde.ort != 'undefined') ? gemeinde.ort : "";
-						var plz = (typeof gemeinde.plz != 'undefined') ? gemeinde.plz : "";
-						var patron = (typeof gemeinde.patron != 'undefined') ? gemeinde.patron : "";
-						var url = (typeof gemeinde.url != 'undefined') ? gemeinde.url : "";
-						var configurl = (typeof gemeinde.configurl != 'undefined') ? gemeinde.configurl : "";
-						var lat = (typeof gemeinde.lat != 'undefined') ? gemeinde.lat : "";
-						var lon = (typeof gemeinde.lon != 'undefined') ? gemeinde.lon : "";
+						if(!isset(gemeinde)) { console.log(i+': unset'); continue;}
+						var id = isset(gemeinde.id) ? gemeinde.id : "";
+						var kurz = isset(gemeinde.kurz) ? gemeinde.kurz : "";
+						var lang = isset(gemeinde.lang) ? gemeinde.lang : "";
+						var strasse = isset(gemeinde.strasse) ? gemeinde.strasse : "";
+						var ort = isset(gemeinde.ort) ? gemeinde.ort : "";
+						var plz = isset(gemeinde.plz) ? gemeinde.plz : "";
+						var patron = isset(gemeinde.patron) ? gemeinde.patron : "";
+						var url = isset(gemeinde.url) ? gemeinde.url : "";
+						var configurl = isset(gemeinde.configurl) ? gemeinde.configurl : "";
+						var lat = isset(gemeinde.lat) ? gemeinde.lat : "";
+						var lon = isset(gemeinde.lon) ? gemeinde.lon : "";
 					
 	//					console.log('INSERT OR REPLACE INTO gemeinde (id, kurz, lang, strasse, ort, plz, patron, url, configurl, lat, lon) values (\''+id+'\', \''+kurz+'\', \''+lang+'\', \''+strasse+'\', \''+ort+'\', \''+plz+'\', \''+patron+'\', \''+url+'\', \''+configurl+'\', \''+lat+'\', \''+lon+'\');');
 						tx.executeSql('INSERT OR REPLACE INTO gemeinde (id, kurz, lang, strasse, ort, plz, patron, url, configurl, lat, lon) values (\''+id+'\', \''+kurz+'\', \''+lang+'\', \''+strasse+'\', \''+ort+'\', \''+plz+'\', \''+patron+'\', \''+url+'\', \''+configurl+'\', \''+lat+'\', \''+lon+'\');');
@@ -570,11 +609,11 @@ function akhJSON1(json) {
 	$.each(json.people, function(index, value) {
 		//console.log(value.name);
 		var pcontent = $('<div/>').attr('data-role',"collapsible").html('<h3>'+value.name+' ('+value.title+')</h3>');
-		if(typeof value.pic != 'undefined') { pcontent.append('<div><img src=\''+value.pic+'\' style="float:left;max-width:50%;max-height:150px;" /></div>'); }
-		if((typeof value.tel != 'undefined')||(typeof value.mail != 'undefined')) {
+		if(isset(value.pic)) { pcontent.append('<div><img src=\''+value.pic+'\' style="float:left;max-width:50%;max-height:150px;" /></div>'); }
+		if(isset(value.tel) || isset(value.mail)) {
 			var pc = $('<p/>');
-			if(typeof value.tel != 'undefined') { pc.append('<a class="iconTel" data-inline="true" data-role="button" href=\'tel:'+value.tel+'\'>'+value.tel+'</a></div>'); }
-			if(typeof value.mail != 'undefined') { pc.append('<a class="iconMail" data-inline="true" data-role="button" href=\'mailto:'+value.mail+'\'>'+value.mail+'</a></div></p>'); }
+			if(isset(value.tel)) { pc.append('<a class="iconTel" data-inline="true" data-role="button" href=\'tel:'+value.tel+'\'>'+value.tel+'</a></div>'); }
+			if(isset(value.mail)) { pc.append('<a class="iconMail" data-inline="true" data-role="button" href=\'mailto:'+value.mail+'\'>'+value.mail+'</a></div></p>'); }
 			pcontent.append(pc);
 		}
 		$('#akh_people').append(pcontent);
@@ -583,9 +622,9 @@ function akhJSON1(json) {
 		//console.log(value.title+' '+value.dtstart);
 		var d = new Date(value.dtstart);
 		var pcontent = $('<div/>').attr('data-role',"collapsible").html('<h3>'+value.title+' ('+d.getDate()+'.'+d.getMonth()+'.'+d.getFullYear()+')</h3>');
-		if(typeof value.pic != 'undefined') { pcontent.append('<div><img src=\''+value.pic+'\' style="float:left;max-width:50%;max-height:150px;" /></div>'); }
-		if(typeof value.desc != 'undefined') { pcontent.append('<p>'+value.desc+'</p>'); }
-		if((typeof value.adress != 'undefined')&&(typeof value.lat != 'undefined')&&(typeof value.lon != 'undefined')) {
+		if(isset(value.pic)) { pcontent.append('<div><img src=\''+value.pic+'\' style="float:left;max-width:50%;max-height:150px;" /></div>'); }
+		if(isset(value.desc)) { pcontent.append('<p>'+value.desc+'</p>'); }
+		if( isset(value.adress) && isset(value.lat)&& isset(value.lon)) {
 			var pc = $('<div><a class="iconPlace" data-inline="true" data-role="button" href="geo:'+value.lat+','+value.lon+';u='+value.adress+'">'+value.adress+'</a></div>');
 			pcontent.append(pc);
 		}
@@ -593,9 +632,11 @@ function akhJSON1(json) {
 	});
 	$('#akh_content').trigger( "create" );
 }
+
 /*
 $(document).ready(function() {
 onDeviceReady();
 });
 */
+
 app.initialize();
