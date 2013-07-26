@@ -527,7 +527,7 @@ dataImport = function(data,id) {
 					var dtstart = event.dtstart;
 					var dtend = isset(event.dtend) ? event.dtend : event.dtstart;
 					var recurrence = isset(event.recurrence) && testJson(event.recurrence) ? JSON.stringify(event.recurrence) : null;
-					var rend = isset(event.rend) ? event.rend : null;
+					var rend = isset(event.rend) ? event.rend*1000 : null;
 					var desc = isset(event.desc) ? htmlentities(event.desc) : null;
 					var costs = isset(event.costs) ? htmlentities(event.costs) : null;
 					var url = isset(event.url) ? htmlentities(event.url) : null;
@@ -540,8 +540,8 @@ dataImport = function(data,id) {
 					var lon = isset(event.lon) ? htmlentities(event.lon) : null;
 					var jetzt = new Date();
 					//console.log([id,id+"-"+i,title,summary,adress,lat,lon,facebook,google,pic,url,costs,0,dtstart,dtend,recurrence,rend,jetzt.getTime()]);
-					if((jetzt.getTime() < dtend*1000)||(jetzt.getTime() < rend*1000)||(isset(event.recurrence)&&!isset(event.rend))) {
-						console.log('insert into db');
+					if((jetzt.getTime() < dtend*1000)||(jetzt.getTime() < rend)||(isset(event.recurrence)&&!isset(event.rend))) {
+						console.log('insert into db: '+title);
 						tx.executeSql("INSERT INTO event (id, eid, title, summary, adress, lat, lon, facebook, google, pic, url, costs, subevent, dtstart, dtend, recurrence, rend) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);",[id,id+"-"+i,title,summary,adress,lat,lon,facebook,google,pic,url,costs,'root',dtstart,dtend,recurrence,rend]);
 						if(isset(event.subevent)&&(event.subevent.length>0)) {
 							for(var j = 0; j < event.subevent.length; j++) {
@@ -922,7 +922,6 @@ function onDeviceReady() {
 		dataImport(json,'akh'); 
 	});
 	generateSpecialData('akh','akh');
-	//if(isset(custom_json)) {console.log(custom_json); dataImport(custom_json,'test');}
 }
 
 function gemeindefill() {
@@ -962,7 +961,20 @@ function setGemeinde(id,prefix) {
 				if(gemeinde.patron.length > 0) { $('#'+prefix+'gemeindename').append(' &bdquo;'+gemeinde.patron+'&ldquo;');}	
 				$('#'+prefix+'gemeindeadresse').html('<strong>'+gemeinde.kurz+' '+gemeinde.ort+'</strong><br/>'+gemeinde.strasse+'<br/>'+gemeinde.plz+' '+gemeinde.ort+'<br/><br/><a href=\''+gemeinde.url+'\'>'+gemeinde.url+'</a>');
 				$('#'+prefix+'gemeindebleiste_karte').attr('href','geo:'+gemeinde.lat+','+gemeinde.lon+';u='+$('#'+prefix+'gemeindename').html());
-				if(gemeinde.configurl.length > 0 ) { $('#'+prefix+'gemeindebleiste_zusatz').attr('onclick',''); }
+				if(gemeinde.configurl !== null && gemeinde.configurl.length > 0 ) { 
+					$('#'+prefix+'gemeindebleiste_zusatz').attr('data-configurl',escape(gemeinde.configurl)).attr('data-prefix',escape(prefix)).attr('data-id',escape(id)).click(
+						function(){
+							console.log($(this).data('configurl'));
+							$.getJSON( unescape($(this).data('configurl')), 
+								(function(thisprefix,thisid) {
+									return function(data) {
+										dataImport(data,thisid);
+										setGemeinde(thisid, thisprefix);
+									};
+								}($(this).data('prefix'),$(this).data('id'))));
+						}
+					);
+				}
 				else {$('#'+prefix+'gemeindebleiste_zusatz').addClass('hidden');}
 				$('#'+prefix+'gemeindebleiste_fav').attr('onclick','makeFav("'+gemeinde.id+'")');
 				//$('#gemeindebleiste').html('<a href="geo:'+gemeinde.lat+','+gemeinde.lon+'" data-icon="map" data-role="button">Karte</a>');
@@ -1086,6 +1098,7 @@ function akhJSON1(json) {
 
 /*
 $(document).ready(function() {
+	if(isset(custom_json)) {console.log(custom_json); dataImport(custom_json,'test');}
 	onDeviceReady();
 });
 */
