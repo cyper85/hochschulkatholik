@@ -375,6 +375,7 @@ gemeinde.ort = "Ilmenau";
 gemeinde.url = "http://www.ksg-ilmenau.de";
 gemeinde.lat = 50.6844;
 gemeinde.lon = 10.9114;
+gemeinde.configurl = "http://erstikalender.info/ilmenau.json";
 global_json.gemeinde.push(gemeinde);
 gemeinde = {};
 gemeinde.id = "jena";

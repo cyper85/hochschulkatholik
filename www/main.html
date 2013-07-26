@@ -45,13 +45,24 @@
 				<p>Nächste Hochschulgemeinde:</p>
 				
 				<h2 id='maingemeindename'></h2>
+				<img src="" class='gemeindebild' id = 'main_logo' />
 				<p id='maingemeindeadresse'></p>
 				<div data-role="controlgroup" id='maingemeindebleiste' data-type='horizontal'>
 					<a href='geo:' class='CustomIconButton' id='maingemeindebleiste_karte' data-role="button">p</a>
 					<a href='#' id='maingemeindebleiste_zusatz' onclick='' class='CustomIconButton' data-role="button">i</a>
+					<a href='#' id='main_facebook' onclick='' target='_blank' class='CustomIconButton' data-role="button">f</a>
+					<a href='#' id='main_twitter' onclick='' target='_blank' class='CustomIconButton' data-role="button">t</a>
+					<a href='#' id='main_google' onclick='' target='_blank' class='CustomIconButton' data-role="button">g</a>
 					<a href='#fav' id='maingemeindebleiste_fav' onclick='' class='CustomIconButton' data-role="button">s</a>
 				</div>
-				<div id='maingemeindezusatz' class='hidden'></div>
+				<div id='main_additional'>
+				</div>
+				<div id='main_event'>
+				</div>
+				<div id='main_people'>
+				</div>
+				<div id='main_place'>
+				</div>
 			</div>
 		</div>
 		<div data-role="page" id="akh">
@@ -66,9 +77,17 @@
 				</div><!-- /navbar -->
 			</div>
 			<div id='akh_content' data-role="content">
+				<div data-role="controlgroup" id='maingemeindebleiste' data-type='horizontal'>
+					<a href='geo:50.71631445134514,7.116947695106566;u=Forum Hochschule und Kirche' class='CustomIconButton' id='akhgemeindebleiste_karte' data-role="button">p</a>
+					<a href='https://www.facebook.com/pages/AKH-Arbeitsgemeinschaft-Katholischer-Hochschulgemeinden/113820958642804' id='akh_facebook' onclick='' target='_blank' class='CustomIconButton' data-role="button">f</a>
+				</div>
+				<div id='akh_additional'>
+				</div>
 				<div id='akh_event'>
 				</div>
 				<div id='akh_people'>
+				</div>
+				<div id='akh_place'>
 				</div>
 			</div>
 		</div>
@@ -133,13 +152,26 @@
 			</div>
 			<div data-role="content">
 				<h1 id='gemeindename'></h1>
+				<img src="" class='gemeindebild' id = '_logo' />
 				<p id='gemeindeadresse'></p>
 				<div data-role="controlgroup" id='gemeindebleiste' data-type='horizontal'>
 					<a href='geo:' class='CustomIconButton' id='gemeindebleiste_karte' data-role="button">p</a>
 					<a href='#' id='gemeindebleiste_zusatz' onclick='' class='CustomIconButton' data-role="button">i</a>
+					<a href='#' id='_facebook' onclick='' target='_blank' class='CustomIconButton' data-role="button">i</a>
+					<a href='#' id='_twitter' onclick='' target='_blank' class='CustomIconButton' data-role="button">i</a>
+					<a href='#' id='_google' onclick='' target='_blank' class='CustomIconButton' data-role="button">i</a>
+					<a href='#' id='gemeindebleiste_zusatz' onclick='' class='CustomIconButton' data-role="button">i</a>
+					
 					<a href='#fav' id='gemeindebleiste_fav' onclick='' class='CustomIconButton' data-role="button">s</a>
 				</div>
-				<div id='gemeindezusatz' class='hidden'></div>
+				<div id='_additional'>
+				</div>
+				<div id='_event'>
+				</div>
+				<div id='_people'>
+				</div>
+				<div id='_place'>
+				</div>
 			</div>
 		</div>
 

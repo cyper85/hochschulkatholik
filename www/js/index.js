@@ -22,6 +22,31 @@ var dataversion = '1';
 var lat = 50.71860920392487;
 var lon = 10.88554345;
 
+function testJson(json) {
+	try {
+		JSON.stringify(json);
+	} catch (e) {
+		console.log(json);
+		return false;
+	}
+	return true;
+}
+
+function sortEvents(events) {
+	var j = 1;
+	while(j < events.length) {
+		for(var i = j; i < events.length; i++ ){
+			if(events[i].data('dtstart') < events[i-1].data('dtstart')) {
+				var h = events[i];
+				events[i] = events[i-1];
+				events[i-1] = h;
+			}
+		}
+		j++;
+	}
+	return events;
+}
+
 function isset(object) {
 	if(typeof object === 'undefined') {
 		return false;
@@ -33,12 +58,416 @@ function isset(object) {
 }
 
 function htmlentities(value){
-    if (value) {
-        return $('<div />').text(value).html();
-    } else {
-        return '';
-    }
+	if (value) {
+		return $('<div />').text(value).html();
+	} else {
+		return '';
+	}
 }
+		
+function getWeekdayNo(wd) {
+	if( wd == 'SU'){ return 0;}
+	if( wd == 'MO'){ return 1;}
+	if( wd == 'TU'){ return 2;}
+	if( wd == 'WE'){ return 3;}
+	if( wd == 'TH'){ return 4;}
+	if( wd == 'FR'){ return 5;}
+	if( wd == 'SA'){ return 6;}
+	return 7;
+}
+
+function rNewStart(start,r,rend) {
+	start = new Date(start);
+	if(!isset(r.freq) || ( start > rend && rend > 0)) { return 0; }
+	start = new Date(start);
+	var now = new Date();
+	if(start > now) { 
+		return start; 
+	}
+	if(r.freq == 'd') {
+		var i = 1;
+		if(isset(r.interval) && Math.floor(r.interval) > 1) {
+			i = Math.floor(r.interval);
+		}
+		start = start.setDate(start.getDate()+i);
+		return rNewStart(start,r,rend);
+	}
+	if(r.freq == 'w') {
+		var day = [];
+		if(isset(r.byday)) { day = r.byday.toString().split(','); }
+		var weekday = 7;
+		var lWeekday = 7;
+		for(var i = 0; i < day.length; i++) {
+			if( day[i] == 'MO' && start.getDay() < 1 && weekday > 1){weekday = 1;}
+			if( day[i] == 'TU' && start.getDay() < 2 && weekday > 2){weekday = 2;}
+			if( day[i] == 'WE' && start.getDay() < 3 && weekday > 3){weekday = 3;}
+			if( day[i] == 'TH' && start.getDay() < 4 && weekday > 4){weekday = 4;}
+			if( day[i] == 'FR' && start.getDay() < 5 && weekday > 5){weekday = 5;}
+			if( day[i] == 'SA' && start.getDay() < 6 && weekday > 6){weekday = 6;}
+			if( day[i] == 'SU' && start.getDay() < 0 && weekday > 0){weekday = 0;}
+			
+			if( day[i] == 'MO' && lWeekday > 1){lWeekday = 1;}
+			if( day[i] == 'TU' && lWeekday > 2){lWeekday = 2;}
+			if( day[i] == 'WE' && lWeekday > 3){lWeekday = 3;}
+			if( day[i] == 'TH' && lWeekday > 4){lWeekday = 4;}
+			if( day[i] == 'FR' && lWeekday > 5){lWeekday = 5;}
+			if( day[i] == 'SA' && lWeekday > 6){lWeekday = 6;}
+			if( day[i] == 'SU' && lWeekday > 0){lWeekday = 0;}
+			
+		}
+		var i = 1;
+		if(isset(r.interval) && Math.floor(r.interval) > 1) {
+			i = Math.floor(r.interval);
+		}
+		if(lWeekday == 7) {
+			return rNewStart(start.setDate(start.getDate() + i*7),r,rend);
+		}
+		if(weekday == 7) {
+			return rNewStart(start.setDate(start.getDate()-start.getDay()+lWeekday+i*7),r,rend);
+		}
+		return rNewStart(start.setDate(start.getDate() + ((weekday-start.getDay()))),r,rend);
+	}
+	if(r.freq == 'm') {
+		var day = [];
+		if(isset(r.byday)) {
+			var f = new Date(start.getFullYear(),start.getMonth(),1,start.getHours(),start.getMinutes());
+			var l = new Date(start.getFullYear(),start.getMonth()+1,0,start.getHours(),start.getMinutes());
+			var monthday = 32;
+			day = r.byday.toString().split(',');
+			var pattr = /^([+-]?\d+)([A-Z]{2})$/;
+			for(var i = 0; i < day.length; i++) {
+				var d = pattr.exec(day[i]);
+				if(d.length == 3 && Math.ceil(d[1])<6 && Math.ceil(d[1])>-6) {
+					var wd = getWeekdayNo(d[2]);
+					if ( wd == 7 ) {continue;}
+					var newDay = new Date(start.getFullYear(),start.getMonth(),1,start.getHours(),start.getMinutes());
+					if(Math.ceil(d[1])<0) {
+						if(wd > l.getDay()) {
+							newDay.setDate(l.getDate()-(7-wd+l.getDay())+7*(Math.ceil(d[1])+1));
+						}
+						else{
+							newDay.setDate(l.getDate()+wd-l.getDay()+7*(Math.ceil(d[1])+1));
+						}
+						if(newDay.getDate() < monthday && newDay > start) {monthday = newDay.getDate();}
+					}
+					if(Math.ceil(d[1])>0) {
+						if(wd < f.getDay()) {
+							newDay.setDate(8+wd-f.getDay()+7*(Math.ceil(d[1])-1));
+						}
+						else{
+							newDay.setDate(1+wd-f.getDay()+7*(Math.ceil(d[1])-1));
+						}
+						if(newDay.getDate() < monthday && newDay > start) {monthday = newDay.getDate();}
+					}
+				}
+			}
+			if(start.getDate() < monthday && monthday < 32) {
+				var next = new Date(start.getFullYear(),start.getMonth(),monthday,start.getHours(),start.getMinutes());
+				return rNewStart(next,r,rend);
+			}
+			// vom nächsten Montag den Tag rausbekommen
+			var m = start.getMonth()+1;
+			if(Math.ceil(r.interval)>1) { m = start.getMonth()+Math.ceil(r.interval); }
+			f = new Date(start.getFullYear(),m,1,start.getHours(),start.getMinutes());
+			l = new Date(start.getFullYear(),m+1,0,start.getHours(),start.getMinutes());
+			for(var i = 0; i < day.length; i++) {
+				var d = pattr.exec(day[i]);
+				if(d.length == 3 && Math.ceil(d[1])<6 && Math.ceil(d[1])>-6) {
+					var wd = getWeekdayNo(d[2]);
+					if ( wd == 7 ) {continue;}
+					var newDay = new Date(start.getFullYear(),m,1,start.getHours(),start.getMinutes());
+					var hm = newDay.getMonth();
+					if(Math.ceil(d[1])<0) {
+						if(wd > l.getDay()) {
+							newDay.setDate(l.getDate()-((7+l.getDay()-wd)-7*(Math.ceil(d[1])+1)));
+						}
+						else{
+							newDay.setDate(l.getDate()-((l.getDay()-wd)-7*(Math.ceil(d[1])+1)));
+						}
+						if(newDay.getDate() < monthday && newDay.getMonth() == hm) {monthday = newDay.getDate();}
+					}
+					if(Math.ceil(d[1])>0) {
+						if(wd < f.getDay()) {
+							newDay.setDate(8-(f.getDay()-wd)+7*(Math.ceil(d[1])-1));
+						}
+						else{
+							newDay.setDate(1+(wd-f.getDay())+7*(Math.ceil(d[1])-1));
+						}
+						if(newDay.getDate() < monthday && newDay.getMonth() == hm) {monthday = newDay.getDate();}
+					}
+				}
+			}
+			if(monthday < 32) {
+				var next = new Date(start.getFullYear(),m,monthday,start.getHours(),start.getMinutes());
+				return rNewStart(next,r,rend);
+			}
+		}
+		if(isset(r.bymonthday)) {
+			var l = new Date(start.getFullYear(),start.getMonth()+1,0,start.getHours(),start.getMinutes());
+			var lastOfMonth = l.getDate();
+			day = r.bymonthday.toString().split(',');
+			var monthday = 32;
+			var lmonthday = 32;
+			var lmmonthday = 0;
+			for(var i = 0; i < day.length; i++) {
+				if(Math.ceil(day[i]) > -32 && Math.ceil(day[i]) < 32 && Math.ceil(day[i]) != 0) { 
+					if(Math.ceil(day[i])>start.getDate() || (Math.ceil(day[i])<0 && Math.ceil(day[i])+lastOfMonth>start.getDate())) {
+						if(Math.ceil(day[i]) > 0 && monthday > Math.ceil(day[i])) {monthday = Math.ceil(day[i]);}
+						if(Math.ceil(day[i]) < 0 && monthday > Math.ceil(day[i])+lastOfMonth+1) {monthday = Math.ceil(day[i])+lastOfMonth+1;}
+					}
+					if(Math.ceil(day[i]) > 0 && lmonthday > Math.ceil(day[i])) {lmonthday = Math.ceil(day[i]);}
+					if(Math.ceil(day[i]) < 0 && lmmonthday > Math.ceil(day[i])) {lmmonthday = Math.ceil(day[i]);}
+				}
+			}
+			if(monthday < 32) {
+				start.setDate(monthday);
+				return rNewStart(start,r,rend);
+			}
+			if(lmonthday < 32 || lmmonthday < 0) {
+				var i = 1;
+				if(isset(r.interval) && Math.floor(r.interval) > 1) { i = Math.floor(r.interval); }
+				var n1 = new Date(start.getFullYear(),start.getMonth()+i,lmonthday,start.getHours(),start.getMinutes());
+				var n2 = new Date(start.getFullYear(),start.getMonth()+i+1,lmmonthday+1,start.getHours(),start.getMinutes());
+				if(n1<n2) {
+					return rNewStart(n1,r,rend);
+				}
+				else {
+					return rNewStart(n2,r,rend);
+				}
+			}
+		}
+		var i = 1;
+		if(isset(r.interval) && Math.floor(r.interval) > 1) {
+			i = Math.floor(r.interval);
+		}
+		var next = new Date(start.getFullYear(),start.getMonth()+i,start.getDate(),start.getHours(),start.getMinutes());
+		return rNewStart(next,r,rend);
+	}
+	if(r.freq == 'y') {
+		// Jahrestag
+		if(isset(r.bymonth) && Math.ceil(r.bymonth) > 0 && Math.ceil(r.bymonth) < 13 && isset(r.bymonthday) && Math.ceil(r.bymonthday) > -32 && Math.ceil(r.bymonthday) < 32) {
+			var day = r.bymonthday.toString().split(',');
+			var month = r.bymonth.toString().split(',');
+			var interval = 1;
+			if(isset(r.interval) && Math.floor(r.interval) > 1) {
+				interval = Math.floor(r.interval);
+			}
+			var lastOfMonth = new Date(start.getFullYear(), start.getMonth()+1,0,start.getHours(),start.getMinutes());
+			var monthday = 32;
+			var monthstring = [];
+			var daystring = [];
+			for(var i = 0; i < day.length; i++) {
+				if(Math.ceil(day[i])>-32 && Math.ceil(day[i])<0 && Math.ceil(day[i])<(start.getDate()-lastOfMonth.getDate()) && monthday > lastOfMonth.getDate()+Math.ceil(day[i])) {
+					monthday = lastOfMonth.getDate()+Math.ceil(day[i]);
+				}
+				if(Math.ceil(day[i])>0 && Math.ceil(day[i])<32 && Math.ceil(day[i])>start.getDate() && monthday > Math.ceil(day[i])) {
+					monthday = Math.ceil(day[i]);
+				}
+			}
+			if(monthday < 32) {
+				var next = new Date(start.getFullYear(),start.getMonth(),monthday,start.getHours(),start.getMinutes());
+				return rNewStart(next,r,rend);
+			}
+			var lowestMonth = 13;
+			var nextMonth = 13;					
+			for(var i = 0; i < month.length; i++) {
+				if(Math.ceil(month[i])>0 && Math.ceil(month[i])<13) {
+					lowestMonth = lowestMonth > Math.ceil(month[i]) ? Math.ceil(month[i]) : lowestMonth;
+					nextMonth = (nextMonth > Math.ceil(month[i]) && Math.ceil(month[i]) > (start.getMonth()+1) ) ? Math.ceil(month[i]) : nextMonth;
+				}
+			}
+			//Abbruch falls Regeln falsch
+			if(lowestMonth == 13 && nextMonth == 13) { return 0; }
+			var firstOfNextMonth = {};
+			var lastOfNextMonth = {};
+			if(nextMonth < 13) {
+				firstOfNextMonth = new Date(start.getFullYear(), nextMonth-1,1,start.getHours(),start.getMinutes());
+				lastOfNextMonth = new Date(start.getFullYear(), nextMonth,0,start.getHours(),start.getMinutes());
+			}
+			else {
+				firstOfNextMonth = new Date(start.getFullYear()+interval, lowestMonth-1,1,start.getHours(),start.getMinutes());
+				lastOfNextMonth = new Date(start.getFullYear()+interval, lowestMonth,0,start.getHours(),start.getMinutes());
+			}
+			for(var i = 0; i < day.length; i++) {
+				if(Math.ceil(day[i])>-32 && Math.ceil(day[i])<0 && Math.ceil(day[i])<(start.getDate()-lastOfNextMonth.getDate()) && monthday > lastOfNextMonth.getDate()+Math.ceil(day[i])) {
+					monthday = lastOfNextMonth.getDate()+Math.ceil(day[i]);
+				}
+				if(Math.ceil(day[i])>0 && Math.ceil(day[i])<32 && monthday > Math.ceil(day[i])) {
+					monthday = Math.ceil(day[i]);
+				}
+			}
+			if(monthday < 32) {
+				var next = new Date(firstOfNextMonth.getFullYear(),firstOfNextMonth.getMonth(),monthday,firstOfNextMonth.getHours(),firstOfNextMonth.getMinutes());
+				return rNewStart(next,r,rend);
+			}
+			else { return 0; }
+		}
+		// Tag in der x. Woche
+		if(isset(r.byweekno) && isset(r.byday)) {
+			var week = r.byweekno.toString().split(',');
+			var day = r.byday.toString().split(',');
+			var nextWeekday = 8;
+			var firstWeekday = 8;
+			for(var i = 0; i < day.length; i++) {
+				var wd = getWeekdayNo(day[i]);
+				var h1 = start.getDay() == 0 ? 7 : start.getDay();
+				if(wd == 7) {continue;}
+				if(wd == 0) {wd=7;}
+				if(wd > h1 && wd < nextWeekday) { nextWeekday = wd; }
+				if(wd < firstWeekday) { firstWeekday = wd; }
+			}
+			if( nextWeekday < 8 ) {
+				var h1 = start.getDay() == 0 ? 7 : start.getDay();
+				var next = new Date(start.getFullYear(),start.getMonth(),start.getDate()+(nextWeekday - h1),start.getHours(),start.getMinutes());
+				if(next>start) { return rNewStart(next,r,rend);}
+			}
+			if(firstWeekday == 8) { return 0;}
+			var weekdayDiff = start.getDay() == 0 ? 7 - firstWeekday : start.getDay() - firstWeekday;
+			var nextweek = 54;
+			var interval = 1;
+			if(isset(r.interval) && Math.floor(r.interval) > 1) {
+				interval = Math.floor(r.interval);
+			}
+			var firstNextWeek = new Date(start.getFullYear()+interval,0,1,start.getHours(),start.getMinutes());
+			if(firstNextWeek.getWeek() == 1) {
+					firstNextWeek.setDate(2-firstNextWeek.getDay());
+			}
+			else {
+				if(firstNextWeek.getDay() === 0) {
+					firstNextWeek.setDate(2);
+				}
+				else {
+					firstNextWeek.setDate(9-firstNextWeek.getDay());
+				}
+			}
+			var lastNextWeek = new Date(start.getFullYear()+interval,11,31,start.getHours(),start.getMinutes());
+			if(lastNextWeek.getWeek() == 1) {
+				lastNextWeek.setDate(31-6-lastNextWeek.getDay());
+			}
+			else {
+				if(lastNextWeek.getDay() === 0) {
+					lastNextWeek.setDate(25);
+				}
+				else {
+					lastNextWeek.setDate(32-lastNextWeek.getDay());
+				}
+			}
+			var lastWeek = new Date(start.getFullYear(),11,31,start.getHours(),start.getMinutes());
+			if(lastWeek.getWeek() == 1) {
+				lastWeek.setDate(31-6-lastWeek.getDay());
+			}
+			else {
+				if(lastWeek.getDay() === 0) {
+					lastWeek.setDate(25);
+				}
+				else {
+					lastWeek.setDate(32-lastWeek.getDay());
+				}
+			}
+			var nextWeek = 54;
+			var firstWeek = 54;
+			for(var i = 0; i < week.length; i++) {
+				var w = Math.ceil(week[i]);
+				if(w > -54 && w < 54) {
+					if(w < 0) {
+						if(nextWeek > (lastWeek.getWeek() + w + 1) && start.getWeek() > (lastWeek.getWeek() + w + 1)) {
+							nextWeek = (lastWeek.getWeek() + w + 1);
+						}
+						if(firstWeek > (lastNextWeek.getWeek() + w + 1)) {
+							firstWeek = (lastNextWeek.getWeek() + w + 1);
+						}
+					}
+					if(w > 0) {
+						if(nextWeek > w && start.getWeek() < w) {
+							nextWeek = w;
+						}
+						if(firstWeek > w) {
+							firstWeek = w;
+						}
+					}
+				}
+			}
+			if(nextWeek < 54 && nextWeek > start.getWeek()) {
+				var h1 = (start.getDay() == 0 ? 7 : start.getDay());
+				start.setDate(start.getDate()+7*nextWeek-h1+firstWeekday);
+				return rNewStart(start,r,rend);
+			}
+			if(firstWeek==54) {return 0;}
+			firstNextWeek.setDate(firstNextWeek.getDate()+(7*(firstWeek-1))+firstWeekday-1);
+			if(firstNextWeek>start) {
+				return rNewStart(firstNextWeek,r,rend);
+			}
+		}
+		// x. Wochentag (kann unterschiedlich sein, muss aber nicht)
+		if(isset(r.byday)) {
+			var firstOfYear = new Date(start.getFullYear(),0,1,start.getHours(),start.getMinutes());
+			var lastOfYear = new Date(start.getFullYear()+1,0,0,start.getHours(),start.getMinutes());
+			var yearDays = (lastOfYear - firstOfYear)/(24*60*60*1000)+1;
+			var interval = 1;
+			if(isset(r.interval) && Math.floor(r.interval) > 1) {
+				interval = Math.floor(r.interval);
+			}
+			var firstOfNextYear = new Date(start.getFullYear()+interval,0,1,start.getHours(),start.getMinutes());
+			var lastOfNextYear = new Date(start.getFullYear()+interval+1,0,0,start.getHours(),start.getMinutes());
+			var nextYearDays = (lastOfNextYear - firstOfNextYear)/(24*60*60*1000)+1;
+			var day = r.byday.toString().split(',');
+			var pattr = /^([+-]?\d+)([A-Z]{2})$/;
+			var nextYearDay = 54*7;
+			var nextNextYearDay = 54*7;
+			for(var i = 0; i < day.length; i++) {
+				var d = pattr.exec(day[i]);
+				if(d.length == 3 && Math.ceil(d[1]) > -54 && Math.ceil(d[1]) < 54) {
+					var wd = getWeekdayNo(d[2]);
+					if ( wd == 7 ) {continue;}
+					if(Math.ceil(d[1]) > 0 && wd >= firstOfYear.getDay() && nextYearDay > (1+wd-firstOfYear.getDay()+(Math.ceil(d[1])-1)*7)) {
+						nextYearDay = wd-firstOfYear.getDay()+((Math.ceil(d[1])-1)*7)+1;
+					}
+					if(Math.ceil(d[1]) > 0 && wd < firstOfYear.getDay() && nextYearDay > (8+wd-firstOfYear.getDay()+(Math.ceil(d[1])-1)*7)) {
+						nextYearDay = 8+wd-firstOfYear.getDay()+((Math.ceil(d[1])-1)*7);
+					}
+					if(Math.ceil(d[1]) < 0 && wd <= lastOfYear.getDay() && nextYearDay > (yearDays-(lastOfYear.getDay()-wd-((Math.ceil(d[1])-1)*7)))) {
+						nextYearDay = yearDays-(lastOfYear.getDay()-wd-((Math.ceil(d[1])-1)*7));
+					}
+					if(Math.ceil(d[1]) < 0 && wd > lastOfYear.getDay() && nextYearDay > (yearDays-7+wd-lastOfYear.getDay()+((Math.ceil(d[1])+1)*7))) {
+						nextYearDay = yearDays-7+wd-lastOfYear.getDay()+((Math.ceil(d[1])+1)*7);
+					}
+					if(Math.ceil(d[1]) > 0 && wd >= firstOfNextYear.getDay() && nextNextYearDay > (1+wd-firstOfNextYear.getDay()+(Math.ceil(d[1])-1)*7)) {
+						nextNextYearDay = wd-firstOfNextYear.getDay()+((Math.ceil(d[1])-1)*7)+1;
+					}
+					if(Math.ceil(d[1]) > 0 && wd < firstOfNextYear.getDay() && nextNextYearDay > (8+wd-firstOfNextYear.getDay()+(Math.ceil(d[1])-1)*7)) {
+						nextNextYearDay = 8+wd-firstOfNextYear.getDay()+((Math.ceil(d[1])-1)*7);
+					}
+					if(Math.ceil(d[1]) < 0 && wd <= lastOfNextYear.getDay() && nextNextYearDay > (nextYearDays-(lastOfNextYear.getDay()-wd-((Math.ceil(d[1])+1)*7)))) {
+						nextNextYearDay = nextYearDays-(lastOfNextYear.getDay()-wd-((Math.ceil(d[1])+1)*7));
+					}
+					if(Math.ceil(d[1]) < 0 && wd > lastOfNextYear.getDay() && nextNextYearDay > (nextYearDays-7+wd-lastOfNextYear.getDay()+((Math.ceil(d[1])+1)*7))) {
+						nextNextYearDay = (nextYearDays-7+wd-lastOfNextYear.getDay()+((Math.ceil(d[1])+1)*7));
+					}
+				}
+			}
+			if(nextYearDay < (54*7)) {
+				var next = new Date(firstOfYear.getFullYear(),0,nextYearDay,start.getHours(),start.getMinutes());
+				if(next>start) {
+					return rNewStart(next,r,rend);
+				}
+			}
+			if(nextNextYearDay < (54*7)) {
+				var next = new Date(firstOfNextYear.getFullYear(),0,nextNextYearDay,start.getHours(),start.getMinutes());
+				if(next>start) {
+					return rNewStart(next,r,rend);
+				}
+			}
+		}				
+		var i = 1;
+		if(isset(r.interval) && Math.floor(r.interval) > 1) {
+			i = Math.floor(r.interval);
+		}
+		var next = new Date(start.getFullYear()+i,start.getMonth(),start.getDate(),start.getHours(),start.getMinutes());
+		return rNewStart(next,r,rend);
+	}
+	return 0;
+}
+
 
 dataImport = function(data,id) {
 	console.log(id + " ZusatzdatenImport");
@@ -51,12 +480,14 @@ dataImport = function(data,id) {
 		tx.executeSql('DELETE FROM place WHERE id = \''+id+'\';');
 		
 		// Zusatzdaten
-		if(isset(data.additional) && data.additional.length > 0) {
+		if(data.additional) {
 			if(isset(data.additional.url)) { tx.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);", [id,'url',htmlentities(data.additional.url)]); }
 			if(isset(data.additional.facebook)) { tx.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);",[id,'facebook',htmlentities(data.additional.facebook)]); }
 			if(isset(data.additional.twitter)) { tx.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);",[id,'twitter',htmlentities(data.additional.twitter)]); }
 			if(isset(data.additional.google)) { tx.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);",[id,'google',htmlentities(data.additional.google)]); }
 			if(isset(data.additional.logo)) { tx.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);",[id,'logo',htmlentities(data.additional.logo)]); }
+			if(isset(data.additional.tel)) { tx.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);",[id,'tel',htmlentities(data.additional.tel)]); }
+			if(isset(data.additional.fax)) { tx.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);",[id,'fax',htmlentities(data.additional.fax)]); }
 		}
 		
 		// Ansprechpartner
@@ -71,7 +502,7 @@ dataImport = function(data,id) {
 					var email = isset(people.mail) ? htmlentities(people.mail) : null;
 					var tel = isset(people.tel) ? htmlentities(people.tel) : null;
 					var fax = isset(people.fax) ? htmlentities(people.fax) : null;
-					var facebook = isset(people.facebook) ? htmlentities(people.facebook) : null;
+					var facebook = isset(people.facebook) && people.facebook.toString().match(/^[a-z\d\.]{5,}$/) ? 'https://www.facebook.com/'+htmlentities(people.facebook) : null;
 					var twitter = isset(people.twitter) ? htmlentities(people.twitter) : null;
 					var google = isset(people.google) ? htmlentities(people.google) : null;
 					var mobil = isset(people.mobil) ? htmlentities(people.mobil) : null;
@@ -95,8 +526,8 @@ dataImport = function(data,id) {
 					var title = htmlentities(event.title);
 					var dtstart = event.dtstart;
 					var dtend = isset(event.dtend) ? event.dtend : event.dtstart;
-					var recurrence = isset(event.recurrence) ? event.recurrence : null;
-					var rend = isset(event.rend) ? event.rend : event.dtstart;
+					var recurrence = isset(event.recurrence) && testJson(event.recurrence) ? JSON.stringify(event.recurrence) : null;
+					var rend = isset(event.rend) ? event.rend : null;
 					var desc = isset(event.desc) ? htmlentities(event.desc) : null;
 					var costs = isset(event.costs) ? htmlentities(event.costs) : null;
 					var url = isset(event.url) ? htmlentities(event.url) : null;
@@ -155,45 +586,58 @@ dataImport = function(data,id) {
 		if(isset(data.place)&&(data.place.length > 0)) {
 			for(var i = 0; i < data.place.length; i++) {
 				var place = data.place[i];
-				if (isset(place.name)) {
+				if (isset(place.name) && isset(place.adress) && isset(place.lat) && isset(place.lon)) {
 					var name = htmlentities(place.name);
-					var adresse = isset(place.adresse) ? htmlentities(place.adresse) : null;
+					var adresse = isset(place.adress) ? htmlentities(place.adress) : null;
 					var lat = isset(place.lat) ? htmlentities(place.lat) : null;
 					var lon = isset(place.lon) ? htmlentities(place.lon) : null;
 					var email = isset(place.email) ? htmlentities(place.email) : null;
-					var telefon = isset(place.telefon) ? htmlentities(place.telefon) : null;
+					var telefon = isset(place.tel) ? htmlentities(place.tel) : null;
 					var fax = isset(place.fax) ? htmlentities(place.fax) : null;
 					var pic = isset(place.pic) ? htmlentities(place.pic) : null;
 					var desc = isset(place.desc) ? htmlentities(place.desc) : null;
-					tx.executeSql("INSERT INTO place (id,name,adresse,lat,lon,email,telefon,fax,pic,position,desc) VALUES (?,?,?,?,?,?,?,?,?,?,?);",[id,name,adresse,lat,lon,email,telefon,fax,pic,desc]);
+					tx.executeSql("INSERT INTO place (id,name,adresse,lat,lon,email,telefon,fax,pic,desc) VALUES (?,?,?,?,?,?,?,?,?,?);",[id,name,adresse,lat,lon,email,telefon,fax,pic,desc]);
 				}
 			}
 		}
 	}, function (tx, err) { 
+		console.log(tx); 
+		console.log(err); 
 		console.log("Rückgabe: "+tx.code+' '+tx.message); 
 	});
 }
 
 function generateSpecialData(id,prefix) {
+	console.log('GENERATE DATA');
 	db.transaction(function(tx) {
 		// Zusatzdaten
+		$('#'+prefix+'_additional').html('');
 		tx.executeSql("SELECT * FROM additional WHERE id = '"+id+"'" , [], function(tx,rs) {
-			$("#"+prefix+"zusatz").html("");
+			$("#"+prefix+"_additional").html("");
+			$("#"+prefix+"_facebook").addClass("hidden");
+			$("#"+prefix+"_twitter").addClass("hidden");
+			$("#"+prefix+"_google").addClass("hidden");
+			$("#"+prefix+"_logo").addClass("hidden");
 			for (var i = 0; i < rs.rows.length; i++) {
 				var zusatz = rs.rows.item(i);
-				if(zusatz.key == 'facebook') {
-					var facebook = $('<a/>').attr('href',zusatz.value).attr('class','CustomIconButton').attr('data-role',"button").html('f');
-					$("#"+prefix+"zusatz").append(facebook);
+				if(zusatz.key == 'tel') {
+					var pc = $('<a class="iconTel" data-inline="true" data-role="button" href="tel:'+zusatz.value+'">'+zusatz.value+'</a>');
+					$("#"+prefix+"_additional").append(pc);
 				}
-				if(zusatz.key == 'google') {
-					var facebook = $('<a/>').attr('href',zusatz.value).attr('class','CustomIconButton').attr('data-role',"button").html('g');
-					$("#"+prefix+"zusatz").append(facebook);
+				if(zusatz.key == 'fax') {
+					var pc = $('<a class="iconFax" data-inline="true" data-role="button" href="tel:'+zusatz.value+'">'+zusatz.value+'</a>');
+					$("#"+prefix+"_additional").append(pc);
 				}
-				if(zusatz.key == 'twitter') {
-					var facebook = $('<a/>').attr('href',zusatz.value).attr('class','CustomIconButton').attr('data-role',"button").html('t');
-					$("#"+prefix+"zusatz").append(facebook);
+				if(zusatz.key == 'url') {
+					var pc = $('<a class="iconWWW" data-inline="true" data-role="button" href="'+zusatz.value+'">'+zusatz.value.replace(/^http[s]?\:\/\/(www\.)?/gi, "")+'</a>');
+					$("#"+prefix+"_additional").append(pc);
 				}
+				if(zusatz.key == 'facebook') { $('#'+prefix+'_facebook').attr('href',zusatz.value).removeClass('hidden'); }
+				if(zusatz.key == 'twitter') { $('#'+prefix+'_twitter').attr('href',zusatz.value).removeClass('hidden'); }
+				if(zusatz.key == 'google') { $('#'+prefix+'_google').attr('href',zusatz.value).removeClass('hidden'); }
+				if(zusatz.key == 'logo') { $('#'+prefix+'_logo').attr('src',zusatz.value).removeClass('hidden'); }
 			}
+			$('#'+prefix+'_additional').trigger( "create" );
 		});
 		// Veranstaltungen
 		tx.executeSql("SELECT * FROM event WHERE id = '"+id+"' AND subevent = 'root';" , [], function(tx,rs) {
@@ -201,15 +645,29 @@ function generateSpecialData(id,prefix) {
 			if(rs.rows.length>0) {
 				// Collapse Menü erstellen
 				var cmenu = $('<div/>').attr('data-role',"collapsible").append($('<h3>').html('Veranstaltungen'));
+				var events = [];
 				for (var i = 0; i < rs.rows.length; i++) {
 					var event = rs.rows.item(i);
 					var d = new Date(event.dtstart*1000);
-					var pcontent = $('<div/>').attr('data-role',"collapsible").attr('id',prefix+'-'+event.eid);
-					if((d.getHours()==0)&&(d.getMinutes()==0)) {
-						pcontent.html('<h3>'+event.title+' ('+(d.getDate() < 10 ? '0' + d.getDate() : d.getDate())+'.'+(d.getMonth() < 10 ? '0' + d.getMonth() : d.getMonth())+'.'+d.getFullYear()+')</h3>');
-					}
-					else {
-						pcontent.html('<h3>'+event.title+' ('+(d.getDate() < 10 ? '0' + d.getDate() : d.getDate())+'.'+(d.getMonth() < 10 ? '0' + d.getMonth() : d.getMonth())+'.'+d.getFullYear()+' '+(d.getHours() < 10 ? '0' + d.getHours() : d.getHours())+":"+(d.getMinutes() < 10 ? '0' + d.getMinutes() : d.getMinutes())+')</h3>');
+					var pcontent = $('<div/>').attr('data-role',"collapsible").attr('id',prefix+'-'+event.eid).data('dtstart',event.dtstart*1000);
+					if((event.recurrence!=null)&&(event.recurrence.length>0)) {
+						var rend = 0;
+						if((event.rend!=null)&&(event.rend.length>0)) {rend = event.rend; }
+						start = rNewStart(d,JSON.parse(event.recurrence),rend);
+						if( start === 0 ) { continue;}
+						if((start.getHours()==0)&&(start.getMinutes()==0)) {
+							pcontent.html('<h3>'+event.title+' ('+(start.getDate() < 10 ? '0' + start.getDate() : start.getDate())+'.'+(start.getMonth() < 9 ? '0' + (start.getMonth()+1) : start.getMonth()+1 )+'.'+start.getFullYear()+')</h3>').data('dtstart',start*1);
+						}
+						else {
+							pcontent.html('<h3>'+event.title+' ('+(start.getDate() < 10 ? '0' + start.getDate() : start.getDate())+'.'+(start.getMonth() < 9 ? '0' + (start.getMonth() +1) : (start.getMonth()+1))+'.'+start.getFullYear()+' '+(start.getHours() < 10 ? '0' + start.getHours() : start.getHours())+":"+(start.getMinutes() < 10 ? '0' + start.getMinutes() : start.getMinutes())+')</h3>').data('dtstart',start*1);
+						}
+					} else {
+						if((d.getHours()==0)&&(d.getMinutes()==0)) {
+							pcontent.html('<h3>'+event.title+' ('+(d.getDate() < 10 ? '0' + d.getDate() : d.getDate())+'.'+(d.getMonth() < 9 ? '0' + (d.getMonth()+1) : d.getMonth()+1 )+'.'+d.getFullYear()+')</h3>');
+						}
+						else {
+							pcontent.html('<h3>'+event.title+' ('+(d.getDate() < 10 ? '0' + d.getDate() : d.getDate())+'.'+(d.getMonth() < 9 ? '0' + (d.getMonth() +1) : (d.getMonth()+1))+'.'+d.getFullYear()+' '+(d.getHours() < 10 ? '0' + d.getHours() : d.getHours())+":"+(d.getMinutes() < 10 ? '0' + d.getMinutes() : d.getMinutes())+')</h3>');
+						}
 					}
 					if((event.pic!=null)&&(event.pic.length>0)) { pcontent.append('<div><img src=\''+event.pic+'\' style="float:left;max-width:50%;max-height:150px;" /></div>'); }
 					if((event.summary != null)&&(event.summary.length > 0)) { pcontent.append('<p>'+event.summary+'</p>'); }
@@ -222,11 +680,11 @@ function generateSpecialData(id,prefix) {
 						pcontent.append(pc);
 					}
 					if((event.facebook!=null)&&(event.facebook.length>0)) {
-						var pc = $('<a class="iconFacebook" data-inline="true" data-role="button" href="'+event.facebook+'"> </a>');
+						var pc = $('<a class="iconFacebook" target="_blank" data-inline="true" data-role="button" href="'+event.facebook+'"> </a>');
 						pcontent.append(pc);
 					}
 					if((event.google!=null)&&(event.google.length>0)) {
-						var pc = $('<a class="iconGoogle" data-inline="true" data-role="button" href="'+event.google+'"> </a>');
+						var pc = $('<a class="iconGoogle" target="_blank" data-inline="true" data-role="button" href="'+event.google+'"> </a>');
 						pcontent.append(pc);
 					}
 					if((event.costs!=null)&&(event.costs>0)) {
@@ -260,15 +718,15 @@ function generateSpecialData(id,prefix) {
 									spcontent.append(pc);
 								}
 								if((sevent.facebook!=null)&&(sevent.facebook.length>0)) {
-									var pc = $('<a class="iconFacebook" data-inline="true" data-role="button" href="'+sevent.facebook+'"> </a>');
+									var pc = $('<a class="iconFacebook" target="_blank" data-inline="true" data-role="button" href="'+sevent.facebook+'"> </a>');
 									spcontent.append(pc);
 								}
 								if((sevent.google!=null)&&(sevent.google.length>0)) {
-									var pc = $('<a class="iconGoogle" data-inline="true" data-role="button" href="'+sevent.google+'"> </a>');
+									var pc = $('<a class="iconGoogle" target="_blank" data-inline="true" data-role="button" href="'+sevent.google+'"> </a>');
 									spcontent.append(pc);
 								}
 								if((sevent.costs!=null)&&(sevent.costs>0)) {
-									var pc = $('<a class="iconCosts" data-inline="true" data-role="button">'+sevent.costs+'&euro;</a>');
+									var pc = $('<a class="iconCosts" target="_blank" data-inline="true" data-role="button">'+sevent.costs+'&euro;</a>');
 									spcontent.append(pc);
 								}
 								$('#'+prefix+'-'+event.eid+' > div.ui-collapsible-content').append(spcontent);
@@ -277,8 +735,10 @@ function generateSpecialData(id,prefix) {
 							$('#'+prefix+'-'+event.eid).trigger( "create" );
 						}
 					});
-					cmenu.append(pcontent);
+					events.push(pcontent);
 				}
+				events = sortEvents(events);
+				for(var j = 0; j < events.length; j++) { cmenu.append(events[j]); }
 				console.log('#'+prefix+'_event');
 				$('#'+prefix+'_event').html(cmenu);
 				$('#'+prefix+'_event').trigger( "create" );
@@ -325,11 +785,11 @@ function generateSpecialData(id,prefix) {
 						pcontent.append(pc);
 					}
 					if((people.facebook!=null)&&(people.facebook.length>0)) {
-						var pc = $('<a class="iconFacebook" data-inline="true" data-role="button" href="'+people.facebook+'"> </a>');
+						var pc = $('<a class="iconFacebook" target="_blank" data-inline="true" data-role="button" href="'+people.facebook+'"> </a>');
 						pcontent.append(pc);
 					}
 					if((people.google!=null)&&(people.google.length>0)) {
-						var pc = $('<a class="iconGoogle" data-inline="true" data-role="button" href="'+people.google+'"> </a>');
+						var pc = $('<a class="iconGoogle" target="_blank" data-inline="true" data-role="button" href="'+people.google+'"> </a>');
 						pcontent.append(pc);
 					}
 					if((people.pic!=null)&&(people.pic.length>0)) { pcontent.append($('<br style="clear:both;" />')); }
@@ -401,7 +861,7 @@ function onDeviceReady() {
 		tx.executeSql('CREATE TABLE IF NOT EXISTS dataInfo (id TEXT PRIMARY KEY, data TEXT)');
 		tx.executeSql('CREATE TABLE IF NOT EXISTS gemeinde (id TEXT PRIMARY KEY, kurz TEXT NOT NULL, lang TEXT NOT NULL, strasse TEXT NOT NULL, ort TEXT NOT NULL, plz TEXT NOT NULL, patron TEXT, url TEXT, configurl TEXT, lat REAL, lon REAL)');
 		tx.executeSql('CREATE TABLE IF NOT EXISTS fav (id TEXT PRIMARY KEY)');
-		tx.executeSql('CREATE TABLE IF NOT EXISTS place (id TEXT NOT NULL, name TEXT NOT NULL, adresse TEXT, lat REAL, lon REAL, email TEXT, telefon TEXT, fax TEXT, pic TEXT, desc TEXT)');
+		tx.executeSql('CREATE TABLE IF NOT EXISTS place (id TEXT NOT NULL, name TEXT NOT NULL, adresse TEXT NOT NULL, lat REAL NOT NULL, lon REAL NOT NULL, email TEXT, telefon TEXT, fax TEXT, pic TEXT, desc TEXT)');
 		tx.executeSql('CREATE TABLE IF NOT EXISTS people (id TEXT NOT NULL, name TEXT NOT NULL, adresse TEXT, lat REAL, lon REAL, email TEXT, telefon TEXT, fax TEXT, mobil TEXT, facebook TEXT, twitter TEXT, google TEXT, pic TEXT, position TEXT, desc TEXT)');
 		tx.executeSql('CREATE TABLE IF NOT EXISTS event (id TEXT NOT NULL, eid TEXT PRIMARY KEY, title TEXT NOT NULL, summary TEXT, adress TEXT, lat REAL, lon REAL, facebook TEXT, google TEXT, pic TEXT, url TEXT, costs TEXT, subevent TEXT, dtstart TEXT NOT NULL, dtend TEXT, recurrence TEXT, rend TEXT)');
 		tx.executeSql('CREATE TABLE IF NOT EXISTS additional (id TEXT NOT NULL, key TEXT NOT NULL, value TEXT NOT NULL)');
@@ -431,7 +891,16 @@ function onDeviceReady() {
 						var plz = isset(gemeinde.plz) ? gemeinde.plz : "";
 						var patron = isset(gemeinde.patron) ? gemeinde.patron : "";
 						var url = isset(gemeinde.url) ? gemeinde.url : "";
-						var configurl = isset(gemeinde.configurl) ? gemeinde.configurl : "";
+						var configurl = null;
+						if(isset(gemeinde.configurl)) { 
+							$.getJSON( gemeinde.configurl, 
+								(function(thisi) {
+									return function(data) {
+										dataImport(data,thisi);
+									};
+								}(gemeinde.id)));
+							configurl = gemeinde.configurl;
+						}
 						var lat = isset(gemeinde.lat) ? gemeinde.lat : "";
 						var lon = isset(gemeinde.lon) ? gemeinde.lon : "";
 					
@@ -453,15 +922,16 @@ function onDeviceReady() {
 		dataImport(json,'akh'); 
 	});
 	generateSpecialData('akh','akh');
+	//if(isset(custom_json)) {console.log(custom_json); dataImport(custom_json,'test');}
 }
 
 function gemeindefill() {
 	var kurzestrecke = 10000;
 	var nextksg = '';
-	$('#gemeindeliste').html('');
 	//console.log('gemeindeliste füllen');
 	db.transaction(function(tx) {
 		tx.executeSql("SELECT id, kurz, ort, lat, lon FROM gemeinde ORDER BY ort", [], function(tx,rs) {
+			$('#gemeindeliste').html('');
 			for (var i = 0; i < rs.rows.length; i++) {
 				var gemeinde = rs.rows.item(i);
 				//console.log('gemeindeliste einfüllen:'+gemeinde.id);
@@ -473,61 +943,42 @@ function gemeindefill() {
 				}
 				//console.log(gemeinde.id+': '+strecke+' km');
 			}
-			//console.log('gemeindedaten füllen');
-			tx.executeSql("SELECT * FROM gemeinde WHERE id = '"+nextksg+"'", [], function(tx,rs) {
-				for (var i = 0; i < rs.rows.length; i++) {
-					var gemeinde = rs.rows.item(i);
-					$('#maingemeindename').html(gemeinde.lang);
-					if(gemeinde.patron.length > 0) { $('#maingemeindename').append(' &bdquo;'+gemeinde.patron+'&ldquo;');}
-					$('#maingemeindeadresse').html('<strong>'+gemeinde.kurz+' '+gemeinde.ort+'</strong><br/>'+gemeinde.strasse+'<br/>'+gemeinde.plz+' '+gemeinde.ort+'<br/><br/><a href=\''+gemeinde.url+'\'>'+gemeinde.url+'</a>');
-					$('#maingemeindebleiste_karte').attr('href','geo:'+gemeinde.lat+','+gemeinde.lon+';u='+$('#maingemeindename').html());
-					if(gemeinde.configurl.length > 0 ) { $('#maingemeindebleiste_zusatz').attr('onclick',''); }
-					else {$('#maingemeindebleiste_zusatz').addClass('hidden');}
-					$('#maingemeindebleiste_fav').attr('onclick','makeFav("'+gemeinde.id+'")');
-					//$('#gemeindebleiste').html('<a href="geo:'+gemeinde.lat+','+gemeinde.lon+'" data-icon="map" data-role="button">Karte</a>');
-				}
-			});
-			tx.executeSql("SELECT id FROM fav WHERE id = '"+nextksg+"'" , [], function(tx,rs) {
-				//console.log('Soviele gibt es: '+rs.rows.length);
-				if(rs.rows.length == 0) {
-					$('#maingemeindebleiste_fav').removeClass('ui-btn-active');
-				}
-				else {
-					$('#maingemeindebleiste_fav').addClass('ui-btn-active');
-				}
-			});
+			
+			setGemeinde(nextksg,'main');
 		});
 		// Favoriten aufbauen
 		makeFavList();
 	});
 }
 
-function setGemeinde(id) {
+function setGemeinde(id,prefix) {
+	if(!isset(prefix)) { prefix = "";}
 	//console.log('gemeindedaten füllen');
 	db.transaction(function(tx) {
 		tx.executeSql("SELECT * FROM gemeinde WHERE id = '"+id+"'", [], function(tx,rs) {
 			for (var i = 0; i < rs.rows.length; i++) {
 				var gemeinde = rs.rows.item(i);
-				$('#gemeindename').html(gemeinde.lang);
-				if(gemeinde.patron.length > 0) { $('#gemeindename').append(' &bdquo;'+gemeinde.patron+'&ldquo;');}	
-				$('#gemeindeadresse').html('<strong>'+gemeinde.kurz+' '+gemeinde.ort+'</strong><br/>'+gemeinde.strasse+'<br/>'+gemeinde.plz+' '+gemeinde.ort+'<br/><br/><a href=\''+gemeinde.url+'\'>'+gemeinde.url+'</a>');
-				$('#gemeindebleiste_karte').attr('href','geo:'+gemeinde.lat+','+gemeinde.lon+';u='+$('#gemeindename').html());
-				if(gemeinde.configurl.length > 0 ) { $('#gemeindebleiste_zusatz').attr('onclick',''); }
-				else {$('#gemeindebleiste_zusatz').addClass('hidden');}
-				$('#gemeindebleiste_fav').attr('onclick','makeFav("'+gemeinde.id+'")');
+				$('#'+prefix+'gemeindename').html(gemeinde.lang);
+				if(gemeinde.patron.length > 0) { $('#'+prefix+'gemeindename').append(' &bdquo;'+gemeinde.patron+'&ldquo;');}	
+				$('#'+prefix+'gemeindeadresse').html('<strong>'+gemeinde.kurz+' '+gemeinde.ort+'</strong><br/>'+gemeinde.strasse+'<br/>'+gemeinde.plz+' '+gemeinde.ort+'<br/><br/><a href=\''+gemeinde.url+'\'>'+gemeinde.url+'</a>');
+				$('#'+prefix+'gemeindebleiste_karte').attr('href','geo:'+gemeinde.lat+','+gemeinde.lon+';u='+$('#'+prefix+'gemeindename').html());
+				if(gemeinde.configurl.length > 0 ) { $('#'+prefix+'gemeindebleiste_zusatz').attr('onclick',''); }
+				else {$('#'+prefix+'gemeindebleiste_zusatz').addClass('hidden');}
+				$('#'+prefix+'gemeindebleiste_fav').attr('onclick','makeFav("'+gemeinde.id+'")');
 				//$('#gemeindebleiste').html('<a href="geo:'+gemeinde.lat+','+gemeinde.lon+'" data-icon="map" data-role="button">Karte</a>');
 			}
 		});
 		tx.executeSql("SELECT id FROM fav WHERE id = '"+id+"'" , [], function(tx,rs) {
 			//console.log('Soviele gibt es: '+rs.rows.length);
 			if(rs.rows.length == 0) {
-				$('#gemeindebleiste_fav').removeClass('ui-btn-active');
+				$('#'+prefix+'gemeindebleiste_fav').removeClass('ui-btn-active');
 			}
 			else {
-				$('#gemeindebleiste_fav').addClass('ui-btn-active');
+				$('#'+prefix+'gemeindebleiste_fav').addClass('ui-btn-active');
 			}
 		});
 	});
+	generateSpecialData(id,prefix);
 }
 
 function makeFav(id) {
@@ -635,7 +1086,7 @@ function akhJSON1(json) {
 
 /*
 $(document).ready(function() {
-onDeviceReady();
+	onDeviceReady();
 });
 */
 
