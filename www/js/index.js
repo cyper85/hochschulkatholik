@@ -1098,8 +1098,8 @@ function akhJSON1(json) {
 
 /*
 $(document).ready(function() {
-	if(isset(custom_json)) {console.log(custom_json); dataImport(custom_json,'test');}
 	onDeviceReady();
+	if(isset(custom_json)) {console.log(custom_json); dataImport(custom_json,'test');}
 });
 */
 
