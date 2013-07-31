@@ -26,7 +26,7 @@ function testJson(json) {
 	try {
 		JSON.stringify(json);
 	} catch (e) {
-		console.log(json);
+//		console.log(json);
 		return false;
 	}
 	return true;
@@ -469,9 +469,11 @@ function rNewStart(start,r,rend) {
 }
 
 
+var afterSqlPeople = [];
+var afterSqlPlace = [];
 dataImport = function(data,id) {
-	console.log(id + " ZusatzdatenImport");
-	//console.log(data);
+//	console.log(id + " ZusatzdatenImport");
+//	console.log(data);
 	db.transaction(function(tx) {
 		// alte Daten löschen
 		tx.executeSql('DELETE FROM event WHERE id = \''+id+'\';');
@@ -481,11 +483,21 @@ dataImport = function(data,id) {
 		
 		// Zusatzdaten
 		if(data.additional) {
-			if(isset(data.additional.url)) { tx.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);", [id,'url',htmlentities(data.additional.url)]); }
-			if(isset(data.additional.facebook)) { tx.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);",[id,'facebook',htmlentities(data.additional.facebook)]); }
-			if(isset(data.additional.twitter)) { tx.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);",[id,'twitter',htmlentities(data.additional.twitter)]); }
-			if(isset(data.additional.google)) { tx.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);",[id,'google',htmlentities(data.additional.google)]); }
-			if(isset(data.additional.logo)) { tx.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);",[id,'logo',htmlentities(data.additional.logo)]); }
+			if(isset(data.additional.url) && data.additional.url.toString().match(/^https?:\/\/.+/i)) { tx.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);", [id,'url',htmlentities(data.additional.url)]); }
+			if(isset(data.additional.facebook) && data.additional.facebook.toString().match(/^[a-z\d\.]{5,}$/)) { 
+				$.getJSON( 'http://graph.facebook.com/'+data.additional.facebook, 
+					(function(thisid) {
+						return function(data) {
+							if(isset(data.link)) {
+								tx.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);",[thisid,'facebook',data.link]);
+							}
+						};
+					}(gemeinde.id)));
+			}
+			if(isset(data.additional.twitter) && data.additional.twitter.toString().match(/^[A-Za-z0-9_]{1,15}$/i)) { tx.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);",[id,'twitter','https://www.twitter.com/'+htmlentities(data.additional.twitter.toString())]); }
+			console.log('https://www.twitter.com/'+htmlentities(data.additional.twitter.toString()));
+			if(isset(data.additional.google) && data.additional.google.toString().match(/^[a-z\d\.]{5,}$/)) { tx.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);",[id,'google','https://plus.google.com/'+htmlentities(data.additional.google.toString())]); }
+			if(isset(data.additional.logo) && data.additional.logo.toString().match(/^https?:\/\/.*(png|jpg|jpeg|gif|bmp)$/i)) { tx.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);",[id,'logo',htmlentities(data.additional.logo)]); }
 			if(isset(data.additional.tel)) { tx.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);",[id,'tel',htmlentities(data.additional.tel)]); }
 			if(isset(data.additional.fax)) { tx.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);",[id,'fax',htmlentities(data.additional.fax)]); }
 		}
@@ -496,24 +508,38 @@ dataImport = function(data,id) {
 				var people = data.people[i];
 				if(isset(people.name)) {
 					var name = htmlentities(people.name);
+					var title = isset(people.title) ? htmlentities(people.title) : null;
 					var adresse = isset(people.adresse) ? htmlentities(people.adresse) : null;
 					var lat = isset(people.lat) ? htmlentities(people.lat) : null;
 					var lon = isset(people.lon) ? htmlentities(people.lon) : null;
 					var email = isset(people.mail) ? htmlentities(people.mail) : null;
 					var tel = isset(people.tel) ? htmlentities(people.tel) : null;
 					var fax = isset(people.fax) ? htmlentities(people.fax) : null;
-					var facebook = isset(people.facebook) && people.facebook.toString().match(/^[a-z\d\.]{5,}$/) ? 'https://www.facebook.com/'+htmlentities(people.facebook) : null;
-					var twitter = isset(people.twitter) ? htmlentities(people.twitter) : null;
-					var google = isset(people.google) ? htmlentities(people.google) : null;
+					var twitter = isset(people.twitter) && people.twitter.toString().match(/^[a-z0-9_]{1,15}$/i) ? 'https://www.twitter.com/'+htmlentities(people.twitter) : null;
+					var google = isset(people.google) && people.google.toString().match(/^[a-z\d\.]{5,}$/) ? 'https://plus.google.com/'+htmlentities(people.google) : null;
 					var mobil = isset(people.mobil) ? htmlentities(people.mobil) : null;
 					var pic = isset(people.pic) ? htmlentities(people.pic) : null;
-					var title = isset(people.title) ? htmlentities(people.title) : null;
 					var desc = isset(people.desc) ? htmlentities(people.desc) : null;
 					if(isset(people.dend)) {
 						var now = new Date();
 						if(now > people.dend*1000) { continue; }
 					}
-					tx.executeSql("INSERT INTO people (id,name,adresse,lat,lon,email,telefon,fax,mobil,facebook,twitter,google,pic,position,desc) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);",[id,name,adresse,lat,lon,email,tel,fax,mobil,facebook,twitter,google,pic,title,desc]);
+					var facebook = isset(people.facebook) && people.facebook.toString().match(/^[a-z\d\.]{5,}$/) ? id+'-'+i : null;
+					tx.executeSql("INSERT INTO people (id,name,adresse,lat,lon,email,telefon,fax,mobil,twitter,google,facebook,pic,position,desc) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);",[id,name,adresse,lat,lon,email,tel,fax,mobil,twitter,google,facebook,pic,title,desc]);
+					if(isset(people.facebook) && people.facebook.toString().match(/^[a-z\d\.]{5,}$/)) { 
+						$.getJSON( 'http://graph.facebook.com/'+people.facebook, 
+							(function(thisid,thisi) {
+								return function(data) {
+									console.log(data);
+									if(isset(data.link)) {
+										afterSqlPeople.push([data.link , thisid+'-'+thisi]);
+									}
+									else if (isset(data.username) ){
+										afterSqlPeople.push(['https://www.facebook.com/'+data.username , thisid+'-'+thisi]);
+									}
+								};
+							}(id,i)));
+					}
 				}
 			}
 		}
@@ -532,8 +558,8 @@ dataImport = function(data,id) {
 					var costs = isset(event.costs) ? htmlentities(event.costs) : null;
 					var url = isset(event.url) ? htmlentities(event.url) : null;
 					var pic = isset(event.pic) ? htmlentities(event.pic) : null;
-					var facebook = isset(event.facebook) ? htmlentities(event.facebook) : null;
-					var google = isset(event.google) ? htmlentities(event.google) : null;
+					var google = isset(event.google) && event.google.toString().match(/^[a-z\d\.]{5,}$/) ? 'https://plus.google.com/'+htmlentities(event.google) : null;
+					var facebook = isset(event.facebook) && event.facebook.toString().match(/^[0-9]{5,}$/) ? 'https://www.facebook.com/events/'+htmlentities(event.facebook) : null;
 					var adress = isset(event.adress) ? htmlentities(event.adress) : null;
 					var summary = isset(event.summary) ? htmlentities(event.summary) : null;
 					var lat = isset(event.lat) ? htmlentities(event.lat) : null;
@@ -565,8 +591,8 @@ dataImport = function(data,id) {
 									var scosts = isset(subevent.costs) ? htmlentities(subevent.costs) : null;
 									var surl = isset(subevent.url) ? htmlentities(subevent.url) : null;
 									var spic = isset(subevent.pic) ? htmlentities(subevent.pic) : null;
-									var sfacebook = isset(subevent.facebook) ? htmlentities(subevent.facebook) : null;
-									var sgoogle = isset(subevent.google) ? htmlentities(subevent.google) : null;
+									var sgoogle = isset(subevent.google) && subevent.google.toString().match(/^[a-z\d\.]{5,}$/) ? 'https://plus.google.com/'+htmlentities(subevent.google) : null;
+									var sfacebook = isset(subevent.facebook) && subevent.facebook.toString().match(/^[0-9]{5,}$/) ? 'https://www.facebook.com/events/'+htmlentities(subevent.facebook) : null;
 									var sadress = isset(subevent.adress) ? htmlentities(subevent.adress) : null;
 									var ssummary = isset(subevent.summary) ? htmlentities(subevent.summary) : null;
 									var slat = isset(subevent.lat) ? htmlentities(subevent.lat) : null;
@@ -596,19 +622,54 @@ dataImport = function(data,id) {
 					var fax = isset(place.fax) ? htmlentities(place.fax) : null;
 					var pic = isset(place.pic) ? htmlentities(place.pic) : null;
 					var desc = isset(place.desc) ? htmlentities(place.desc) : null;
-					tx.executeSql("INSERT INTO place (id,name,adresse,lat,lon,email,telefon,fax,pic,desc) VALUES (?,?,?,?,?,?,?,?,?,?);",[id,name,adresse,lat,lon,email,telefon,fax,pic,desc]);
+					var google = isset(place.google) && place.google.toString().match(/^[a-z\d\.]{5,}$/) ? 'https://plus.google.com/'+htmlentities(place.google) : null;
+					var pic = isset(place.pic) ? htmlentities(place.pic) : null;
+					var desc = isset(place.desc) ? htmlentities(place.desc) : null;
+					var facebook = isset(place.facebook) && place.facebook.toString().match(/^[a-z\d\.]{5,}$/) ? id+'-'+i : null;
+					tx.executeSql("INSERT INTO place (id,name,adresse,lat,lon,email,telefon,fax,google,facebook,pic,desc) VALUES (?,?,?,?,?,?,?,?,?,?,?,?);",[id,name,adresse,lat,lon,email,tel,fax,google,facebook,pic,desc]);
+					if(isset(place.facebook) && place.facebook.toString().match(/^[a-z\d\.]{5,}$/)) { 
+						$.getJSON( 'http://graph.facebook.com/'+place.facebook, 
+							(function(thisid,thisi) {
+								return function(data) {
+									console.log(data);
+									if(isset(data.link)) {
+										afterSqlPeople.push([data.link , thisid+'-'+thisi]);
+									}
+									else if (isset(data.username) ){
+										afterSqlPeople.push(['https://www.facebook.com/'+data.username , thisid+'-'+thisi]);
+									}
+								};
+							}(id,i)));
+					}
 				}
 			}
+		}
+	}, function (tx, err) {
+		console.log(tx); 
+		console.log(err); 
+		console.log("Rückgabe: "+tx.code+' '+tx.message); 
+	}, afterSql);
+}
+
+function afterSql() {
+	console.log(afterSqlPeople);
+	
+	db.transaction(function(tx) {
+		for (var i = 0; i < afterSqlPeople.length; i++ ) {
+			tx.executeSql("UPDATE people SET facebook = ? WHERE facebook = ?;",afterSqlPeople[i]);
+		}
+		for (var i = 0; i < afterSqlPlace.length; i++ ) {
+			tx.executeSql("UPDATE place SET facebook = ? WHERE facebook = ?;",afterSqlPlace[i]);
 		}
 	}, function (tx, err) { 
 		console.log(tx); 
 		console.log(err); 
 		console.log("Rückgabe: "+tx.code+' '+tx.message); 
-	});
+	}, gemeindefill);
 }
 
 function generateSpecialData(id,prefix) {
-	console.log('GENERATE DATA');
+//	console.log('GENERATE DATA');
 	db.transaction(function(tx) {
 		// Zusatzdaten
 		$('#'+prefix+'_additional').html('');
@@ -641,7 +702,7 @@ function generateSpecialData(id,prefix) {
 		});
 		// Veranstaltungen
 		tx.executeSql("SELECT * FROM event WHERE id = '"+id+"' AND subevent = 'root';" , [], function(tx,rs) {
-			console.log(rs.rows);
+//			console.log(rs.rows);
 			if(rs.rows.length>0) {
 				// Collapse Menü erstellen
 				var cmenu = $('<div/>').attr('data-role',"collapsible").append($('<h3>').html('Veranstaltungen'));
@@ -707,9 +768,9 @@ function generateSpecialData(id,prefix) {
 								}
 								if((sevent.pic!=null)&&(sevent.pic.length>0)) { spcontent.append('<div><img src=\''+sevent.pic+'\' style="float:left;max-width:50%;max-height:150px;" /></div>'); }
 								if((sevent.summary!=null)&&(sevent.summary.length>0)) { spcontent.append('<p>'+sevent.summary+'</p>'); }
-								console.log(sevent);
+//								console.log(sevent);
 								if((sevent.adress!=null)&&(sevent.adress.length>0)&&(sevent.lat!=0)&&(sevent.lon!=0)) {
-									console.log("ORT: "+sevent.adress);
+//									console.log("ORT: "+sevent.adress);
 									var pc = $('<div><a class="iconPlace" data-inline="true" data-role="button" href="geo:'+sevent.lat+','+sevent.lon+';u='+sevent.adress+'">'+sevent.adress+'</a></div>');
 									spcontent.append(pc);
 								}
@@ -739,7 +800,7 @@ function generateSpecialData(id,prefix) {
 				}
 				events = sortEvents(events);
 				for(var j = 0; j < events.length; j++) { cmenu.append(events[j]); }
-				console.log('#'+prefix+'_event');
+//				console.log('#'+prefix+'_event');
 				$('#'+prefix+'_event').html(cmenu);
 				$('#'+prefix+'_event').trigger( "create" );
 			}
@@ -795,7 +856,7 @@ function generateSpecialData(id,prefix) {
 					if((people.pic!=null)&&(people.pic.length>0)) { pcontent.append($('<br style="clear:both;" />')); }
 					cmenu.append(pcontent);
 				}
-				console.log('#'+prefix+'_people');
+//				console.log('#'+prefix+'_people');
 				$('#'+prefix+'_people').html(cmenu);
 				$('#'+prefix+'_people').trigger( "create" );
 			}
@@ -836,7 +897,7 @@ function geolocationSuccess(position) {
 	lon = position.coords.longitude;
 	localStorage.setItem("lat", lat);
 	localStorage.setItem("lon", lon);
-	console.log('lat: '+lat);
+//	console.log('lat: '+lat);
 	gemeindefill();
 }
 
@@ -852,16 +913,23 @@ function onDeviceReady() {
 	//console.log('Datenbankverbindung');
 	db = window.openDatabase("kath", "1.0", "Sync Demo DB", 200000);
 	//console.log('Datenbankverbindung erledigt');
-	
 	$('#gemeindeliste').append('<li><a href="#">oh oh</a></li>');
 	// Tabellen erstellen
 	//console.log('Tabellen erstellen');
 	db.transaction(function(tx) {
-	$('#gemeindeliste').append('<li><a href="#">oje</a></li>');
+		$('#gemeindeliste').append('<li><a href="#">oje</a></li>');
+		/*
+		tx.executeSql('DROP TABLE dataInfo;');
+		tx.executeSql('DROP TABLE gemeinde;');
+		tx.executeSql('DROP TABLE additional;');
+		tx.executeSql('DROP TABLE place;');
+		tx.executeSql('DROP TABLE people;');
+		tx.executeSql('DROP TABLE event;');
+		*/
 		tx.executeSql('CREATE TABLE IF NOT EXISTS dataInfo (id TEXT PRIMARY KEY, data TEXT)');
 		tx.executeSql('CREATE TABLE IF NOT EXISTS gemeinde (id TEXT PRIMARY KEY, kurz TEXT NOT NULL, lang TEXT NOT NULL, strasse TEXT NOT NULL, ort TEXT NOT NULL, plz TEXT NOT NULL, patron TEXT, url TEXT, configurl TEXT, lat REAL, lon REAL)');
 		tx.executeSql('CREATE TABLE IF NOT EXISTS fav (id TEXT PRIMARY KEY)');
-		tx.executeSql('CREATE TABLE IF NOT EXISTS place (id TEXT NOT NULL, name TEXT NOT NULL, adresse TEXT NOT NULL, lat REAL NOT NULL, lon REAL NOT NULL, email TEXT, telefon TEXT, fax TEXT, pic TEXT, desc TEXT)');
+		tx.executeSql('CREATE TABLE IF NOT EXISTS place (id TEXT NOT NULL, name TEXT NOT NULL, adresse TEXT NOT NULL, lat REAL NOT NULL, lon REAL NOT NULL, email TEXT, telefon TEXT, fax TEXT, pic TEXT, desc TEXT, facebook TEXT, google TEXT)');
 		tx.executeSql('CREATE TABLE IF NOT EXISTS people (id TEXT NOT NULL, name TEXT NOT NULL, adresse TEXT, lat REAL, lon REAL, email TEXT, telefon TEXT, fax TEXT, mobil TEXT, facebook TEXT, twitter TEXT, google TEXT, pic TEXT, position TEXT, desc TEXT)');
 		tx.executeSql('CREATE TABLE IF NOT EXISTS event (id TEXT NOT NULL, eid TEXT PRIMARY KEY, title TEXT NOT NULL, summary TEXT, adress TEXT, lat REAL, lon REAL, facebook TEXT, google TEXT, pic TEXT, url TEXT, costs TEXT, subevent TEXT, dtstart TEXT NOT NULL, dtend TEXT, recurrence TEXT, rend TEXT)');
 		tx.executeSql('CREATE TABLE IF NOT EXISTS additional (id TEXT NOT NULL, key TEXT NOT NULL, value TEXT NOT NULL)');
@@ -879,7 +947,7 @@ function onDeviceReady() {
 					tx.executeSql('INSERT OR REPLACE INTO dataInfo (id, data) values (\'version\', \''+global_json.dataInfo.version+'\')');
 					tx.executeSql('DROP TABLE gemeinde');
 					tx.executeSql('CREATE TABLE gemeinde (id TEXT PRIMARY KEY, kurz TEXT NOT NULL, lang TEXT NOT NULL, strasse TEXT NOT NULL, ort TEXT NOT NULL, plz TEXT NOT NULL, patron TEXT, url TEXT, configurl TEXT, lat REAL, lon REAL)');
-					console.log(global_json);
+//					console.log(global_json);
 					for(var i = 0; i < global_json.gemeinde.length; i++) {
 						var gemeinde = global_json.gemeinde[i];
 						if(!isset(gemeinde)) { console.log(i+': unset'); continue;}
@@ -917,7 +985,7 @@ function onDeviceReady() {
 	});
 	
 	// AKH-Daten updaten
-	console.log('AKH updaten');
+//	console.log('AKH updaten');
 	$.getJSON( 'http://erstikalender.info/akh2.json', function(json){
 		dataImport(json,'akh'); 
 	});
@@ -964,7 +1032,7 @@ function setGemeinde(id,prefix) {
 				if(gemeinde.configurl !== null && gemeinde.configurl.length > 0 ) { 
 					$('#'+prefix+'gemeindebleiste_zusatz').attr('data-configurl',escape(gemeinde.configurl)).attr('data-prefix',escape(prefix)).attr('data-id',escape(id)).click(
 						function(){
-							console.log($(this).data('configurl'));
+//							console.log($(this).data('configurl'));
 							$.getJSON( unescape($(this).data('configurl')), 
 								(function(thisprefix,thisid) {
 									return function(data) {
@@ -1018,33 +1086,23 @@ function makeFav(id) {
 }
 
 function makeFavList() {
-	$('#fav_content').html('');
+	$('#fav_gemeindeliste').html('');
 	db.transaction(function(tx) {
 		tx.executeSql("SELECT id FROM fav ORDER BY id" , [], function(tx,rs) {
 			//console.log('Soviele gibt es: '+rs.rows.length);
 			for(var i = 0; i < rs.rows.length; i++) {
 				var favgemeinde = rs.rows.item(i);
 				//console.log('fav: '+favgemeinde.id);
-				tx.executeSql("SELECT * FROM gemeinde WHERE id = '"+favgemeinde.id+"'", [], function(tx2,rs2) {
+				tx.executeSql("SELECT * FROM gemeinde WHERE id = ?;", [favgemeinde.id], function(tx2,rs2) {
 					for (var j = 0; j < rs2.rows.length; j++) {
-						var g = rs2.rows.item(j);
-						//console.log('fav: '+g.id);
-						var title = $('<h2/>').html(g.kurz+' '+g.ort);
-						var name = $('<h3/>').html(g.lang);
-						if(g.patron.length > 0) { name.append(' &bdquo;'+g.patron+'&ldquo;');}
-						var adresse = $('<p/>').html('<strong>'+g.kurz+' '+g.ort+'</strong><br/>'+g.strasse+'<br/>'+g.plz+' '+g.ort+'<br/><br/><a href=\''+g.url+'\'>'+g.url+'</a>');
-						var geo = $('<a/>').attr('href','geo:'+g.lat+','+g.lon+';u='+name.html()).attr('class','CustomIconButton').attr('data-role',"button").html('p');
-						var zdata = $('<a/>').attr('href','#').attr('class','CustomIconButton').attr('data-role',"button").html('i');
-						if(g.configurl.length > 0 ) { zdata.attr('onclick',''); }
-						else {zdata.addClass('hidden');}
-						var fav = $('<a/>').attr('href','#').attr('class','CustomIconButton').attr('data-role',"button").addClass('ui-btn-active').html('s').click(function () {makeFav(g.id)});
-						var bleiste = $('<div/>').attr('data-role',"controlgroup").attr('data-type','horizontal').append(geo).append(zdata).append(fav);
-						var p = $('<p/>').append(name).append(adresse).append(bleiste);
-						var collapsrow = $('<div/>').attr('data-role',"collapsible").append(title).append(p).addClass('favCollaps');
-						$('#fav_content').append(collapsrow);
+						var gemeinde = rs2.rows.item(j);
+						//console.log('gemeindeliste einfüllen:'+gemeinde.id);
+						var strecke = entfernungBerechnen(gemeinde.lat,gemeinde.lon);
+						$('#fav_gemeindeliste').append('<li><a href="#gemeinde" onclick="setGemeinde(\''+gemeinde.id+'\')">'+gemeinde.kurz+' '+gemeinde.ort+' <span class="ui-li-count">'+strecke+'km</span></a></li>');
+						//console.log(gemeinde.id+': '+strecke+' km');
 					}
 					//console.log('refresh collaps');
-					$('#fav_content').trigger( "create" );
+					$('#fav_gemeindeliste').trigger( "create" );
 				});
 			}
 		});
@@ -1095,12 +1153,10 @@ function akhJSON1(json) {
 	});
 	$('#akh_content').trigger( "create" );
 }
-
 /*
 $(document).ready(function() {
 	onDeviceReady();
 	if(isset(custom_json)) {console.log(custom_json); dataImport(custom_json,'test');}
 });
 */
-
 app.initialize();
