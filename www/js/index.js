@@ -734,7 +734,7 @@ function generateSpecialData(id,prefix) {
 					if((event.pic!=null)&&(event.pic.length>0)) { pcontent.append('<div><img src=\''+event.pic+'\' style="float:left;max-width:50%;max-height:150px;" /></div>'); }
 					if((event.summary != null)&&(event.summary.length > 0)) { pcontent.append('<p>'+event.summary+'</p>'); }
 					if((event.adress!=null)&&(event.adress.length>0)&&(event.lat!=0)&&(event.lon!=0)) {
-						var pc = $('<a class="iconPlace" data-inline="true" data-role="button" href="geo:'+event.lat+','+event.lon+';u='+event.adress+'">'+event.adress+'</a>');
+						var pc = $('<a class="iconPlace" data-inline="true" data-role="button" href="geo:'+event.lat+','+event.lon+'">'+event.adress+'</a>');
 						pcontent.append(pc);
 					}
 					if((event.url!=null)&&(event.url.length>0)) {
@@ -772,7 +772,7 @@ function generateSpecialData(id,prefix) {
 //								console.log(sevent);
 								if((sevent.adress!=null)&&(sevent.adress.length>0)&&(sevent.lat!=0)&&(sevent.lon!=0)) {
 //									console.log("ORT: "+sevent.adress);
-									var pc = $('<div><a class="iconPlace" data-inline="true" data-role="button" href="geo:'+sevent.lat+','+sevent.lon+';u='+sevent.adress+'">'+sevent.adress+'</a></div>');
+									var pc = $('<div><a class="iconPlace" data-inline="true" data-role="button" href="geo:'+sevent.lat+','+sevent.lon+'">'+sevent.adress+'</a></div>');
 									spcontent.append(pc);
 								}
 								if((sevent.url!=null)&&(sevent.url.length>0)) {
@@ -823,7 +823,7 @@ function generateSpecialData(id,prefix) {
 					if((people.pic!=null)&&(people.pic.length>0)) { pcontent.append('<div><img src=\''+people.pic+'\' style="float:left;max-width:50%;max-height:150px;" /></div>'); }
 					if((people.desc != null)&&(people.desc.length > 0)) { pcontent.append('<p>'+people.desc+'</p>'); }
 					if((people.adress!=null)&&(people.adress.length>0)&&(people.lat!=0)&&(people.lon!=0)) {
-						var pc = $('<a class="iconPlace" data-inline="true" data-role="button" href="geo:'+people.lat+','+people.lon+';u='+people.adress+'">'+people.adress+'</a>');
+						var pc = $('<a class="iconPlace" data-inline="true" data-role="button" href="geo:'+people.lat+','+people.lon+'">'+people.adress+'</a>');
 						pcontent.append(pc);
 					}
 					if((people.url!=null)&&(people.url.length>0)) {
@@ -1045,7 +1045,7 @@ function setGemeinde(id,prefix) {
 				$('#'+prefix+'gemeindename').html(gemeinde.lang);
 				if(gemeinde.patron.length > 0) { $('#'+prefix+'gemeindename').append(' &bdquo;'+gemeinde.patron+'&ldquo;');}	
 				$('#'+prefix+'gemeindeadresse').html('<strong>'+gemeinde.kurz+' '+gemeinde.ort+'</strong><br/>'+gemeinde.strasse+'<br/>'+gemeinde.plz+' '+gemeinde.ort+'<br/><br/><a href=\''+gemeinde.url+'\'>'+gemeinde.url+'</a>');
-				$('#'+prefix+'gemeindebleiste_karte').attr('href','geo:'+gemeinde.lat+','+gemeinde.lon+';u='+$('#'+prefix+'gemeindename').html());
+				$('#'+prefix+'gemeindebleiste_karte').attr('href','geo:'+gemeinde.lat+','+gemeinde.lon);
 				if(gemeinde.configurl !== null && gemeinde.configurl.length > 0 ) { 
 					$('#'+prefix+'gemeindebleiste_zusatz').attr('data-configurl',escape(gemeinde.configurl)).attr('data-prefix',escape(prefix)).attr('data-id',escape(id)).click(
 						function(){
@@ -1171,7 +1171,7 @@ function akhJSON1(json) {
 		if(isset(value.pic)) { pcontent.append('<div><img src=\''+value.pic+'\' style="float:left;max-width:50%;max-height:150px;" /></div>'); }
 		if(isset(value.desc)) { pcontent.append('<p>'+value.desc+'</p>'); }
 		if( isset(value.adress) && isset(value.lat)&& isset(value.lon)) {
-			var pc = $('<div><a class="iconPlace" data-inline="true" data-role="button" href="geo:'+value.lat+','+value.lon+';u='+value.adress+'">'+value.adress+'</a></div>');
+			var pc = $('<div><a class="iconPlace" data-inline="true" data-role="button" href="geo:'+value.lat+','+value.lon+'">'+value.adress+'</a></div>');
 			pcontent.append(pc);
 		}
 		$('#akh_event').append(pcontent);
