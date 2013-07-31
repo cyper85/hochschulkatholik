@@ -652,20 +652,21 @@ dataImport = function(data,id) {
 }
 
 function afterSql() {
-	console.log(afterSqlPeople);
-	
-	db.transaction(function(tx) {
-		for (var i = 0; i < afterSqlPeople.length; i++ ) {
-			tx.executeSql("UPDATE people SET facebook = ? WHERE facebook = ?;",afterSqlPeople[i]);
-		}
-		for (var i = 0; i < afterSqlPlace.length; i++ ) {
-			tx.executeSql("UPDATE place SET facebook = ? WHERE facebook = ?;",afterSqlPlace[i]);
-		}
-	}, function (tx, err) { 
-		console.log(tx); 
-		console.log(err); 
-		console.log("Rückgabe: "+tx.code+' '+tx.message); 
-	}, gemeindefill);
+	window.setTimeout(function(){
+		console.log(afterSqlPeople);	
+		db.transaction(function(tx) {
+			for (var i = 0; i < afterSqlPeople.length; i++ ) {
+				tx.executeSql("UPDATE people SET facebook = ? WHERE facebook = ?;",afterSqlPeople[i]);
+			}
+			for (var i = 0; i < afterSqlPlace.length; i++ ) {
+				tx.executeSql("UPDATE place SET facebook = ? WHERE facebook = ?;",afterSqlPlace[i]);
+			}
+		}, function (tx, err) { 
+			console.log(tx); 
+			console.log(err); 
+			console.log("Rückgabe: "+tx.code+' '+tx.message); 
+		}, gemeindefill);
+	}, 1500);
 }
 
 function generateSpecialData(id,prefix) {
