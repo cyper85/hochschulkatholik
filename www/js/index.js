@@ -21,6 +21,11 @@ var db = {};
 var dataversion = '1';
 var lat = 50.71860920392487;
 var lon = 10.88554345;
+var monat = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+var wochentag = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+var weekday = ['SU','MO','TU','WE','TH','FR','SA','SU'];
+
+		
 
 function testJson(json) {
 	try {
@@ -74,6 +79,184 @@ function getWeekdayNo(wd) {
 	if( wd == 'FR'){ return 5;}
 	if( wd == 'SA'){ return 6;}
 	return 7;
+}
+
+function rString(r) {
+	if(!isset(r.freq)) { return 'keine'; }
+	if(r.freq == 'd') {
+		if(isset(r.interval) && Math.floor(r.interval) > 1) {
+			return "alle "+Math.floor(r.interval)+" Tage";
+		}
+		else {
+			return "t&auml;glich";
+		}
+	}
+	if(r.freq == 'w') {
+		var string = [];
+		var day = [];
+		if(isset(r.byday)) { day = r.byday.toString().split(','); }
+		for(var i = 0; i < day.length; i++) {
+			if( day[i] == 'MO'){string.push('montags');}
+			if( day[i] == 'TU'){string.push('dienstags');}
+			if( day[i] == 'WE'){string.push('mittwochs');}
+			if( day[i] == 'TH'){string.push('donnerstags');}
+			if( day[i] == 'FR'){string.push('freitags');}
+			if( day[i] == 'SA'){string.push('samstags');}
+			if( day[i] == 'SU'){string.push('sonntags');}
+		}
+		if(string.length > 0) {
+			if(isset(r.interval) && Math.floor(r.interval) > 1) {
+				return string.join(', ')+' jede '+Math.floor(r.interval)+'. Woche';
+			}
+			else {
+				return string.join(', ')+' jede Woche';
+			}
+		}
+		if(isset(r.interval) && Math.floor(r.interval) > 1) {
+			return 'jede '+Math.floor(r.interval)+'. Woche';
+		}
+		else {
+			return 'w&ouml;chentlich';
+		}
+	}
+	if(r.freq == 'm') {
+		var string = [];
+		var day = [];
+		if(isset(r.byday)) { 
+			day = r.byday.toString().split(',');
+			var pattr = /^([+-]?\d+)([A-Z]{2})$/;
+			for(var i = 0; i < day.length; i++) {
+				var d = pattr.exec(day[i]);
+				if(d.length == 3) {
+					if( d[2] == 'MO'){string.push(Math.ceil(d[1])+'. Montag');}
+					if( d[2] == 'TU'){string.push(Math.ceil(d[1])+'. Dienstag');}
+					if( d[2] == 'WE'){string.push(Math.ceil(d[1])+'. Mittwoch');}
+					if( d[2] == 'TH'){string.push(Math.ceil(d[1])+'. Donnerstag');}
+					if( d[2] == 'FR'){string.push(Math.ceil(d[1])+'. Freitag');}
+					if( d[2] == 'SA'){string.push(Math.ceil(d[1])+'. Samstag');}
+					if( d[2] == 'SU'){string.push(Math.ceil(d[1])+'. Sonntag');}
+				}
+			}
+			if(string.length > 0) {
+				if(isset(r.interval) && Math.floor(r.interval) > 1) {
+					return "am "+string.join('., ')+' jeden '+Math.floor(r.interval)+'. Monat';
+				}
+				else {
+					return "am "+string.join('., ')+' jeden Monat';
+				}
+			}
+		}
+		if(isset(r.bymonthday)) {
+			day = r.bymonthday.toString().split(',');
+			for(var i = 0; i < day.length; i++) {
+				if(Math.ceil(day[i]) > -32 && Math.ceil(day[i]) < 32) { string.push(Math.ceil(day[i])+"."); }
+			}
+			if(string.length > 0) {
+				if(isset(r.interval) && Math.floor(r.interval) > 1) {
+					return "am "+string.join(', ')+' jeden '+Math.floor(r.interval)+'. Monat';
+				}
+				else {
+					return "am "+string.join(', ')+' jeden Monat';
+				}
+			}
+		}
+		if(isset(r.interval) && Math.floor(r.interval) > 1) {
+			return 'jeden '+Math.floor(r.interval)+'. Monat';
+		}
+		else {
+			return 'monatlich';
+		}
+	}
+	if(r.freq == 'y') {
+		// Jahrestag
+		if(isset(r.bymonth) && Math.ceil(r.bymonth) > 0 && Math.ceil(r.bymonth) < 13 && isset(r.bymonthday) && Math.ceil(r.bymonthday) > -32 && Math.ceil(r.bymonthday) < 32) {
+			var day = r.bymonthday.toString().split(',');
+			var month = r.bymonth.toString().split(',');
+			var monthstring = [];
+			var daystring = [];
+			for(var i = 0; i < day.length; i++) {
+				if(Math.ceil(day[i])>-32 && Math.ceil(day[i])<32) {daystring.push(day[i]+'.');}
+			}
+			for(var i = 0; i < month.length; i++) {
+				if(Math.ceil(month[i])>0 && Math.ceil(month[i])<13) {monthstring.push(monat[month[i]-1]);}
+			}
+			if(monthstring.length > 0 && daystring > 0) {
+				if(isset(r.interval) && Math.floor(r.interval) > 1) {
+					return daystring.join(', ')+' im '+monthstring.join(', ')+' alle '+Math.floor(r.interval)+' Jahre';
+				}
+				else {
+					return daystring.join(', ')+' im '+monthstring.join(', ')+' jedes Jahr';
+				}
+			}
+		}
+		// Tag in der x. Woche
+		if(isset(r.byweekno) && isset(r.byday)) {
+			var week = r.byweekno.toString().split(',');
+			var day = r.byday.toString().split(',');
+			var string = [];
+			var daystring = [];
+			for(var i = 0; i < day.length; i++) {
+				if( day[i] == 'MO'){daystring.push('montags');}
+				if( day[i] == 'TU'){daystring.push('dienstags');}
+				if( day[i] == 'WE'){daystring.push('mittwochs');}
+				if( day[i] == 'TH'){daystring.push('donnerstags');}
+				if( day[i] == 'FR'){daystring.push('freitags');}
+				if( day[i] == 'SA'){daystring.push('samstags');}
+				if( day[i] == 'SU'){daystring.push('sonntags');}
+			}
+			for(var i = 0; i < week.length; i++) {
+				var w = Math.ceil(week[i]);
+				if(w > -54 && w < 54) {
+					if(daystring.length > 0) {
+						string.push(daystring.join(', ')+' jede '+w+'. Woche');
+					} else {
+						string.push('jede '+w+'. Woche');
+					}
+				}
+			}
+			if(string.length > 0) {
+				if(isset(r.interval) && Math.floor(r.interval) > 1) {
+					return string.join(', ')+' alle '+Math.floor(r.interval)+' Jahre';
+				}
+				else {
+					return string.join('., ')+' jedes Jahr';
+				}
+			}
+		}
+		// x. Wochentag (kann unterschiedlich sein, muss aber nicht)
+		if(isset(r.byday)) {
+			var dstring = [];
+			var day = r.byday.toString().split(',');
+			var pattr = /^([+-]?\d+)([A-Z]{2})$/;
+			for(var i = 0; i < day.length; i++) {
+				var d = pattr.exec(day[i]);
+				if(d.length == 3 && Math.ceil(d[1]) > -54 && Math.ceil(d[1]) < 54) {
+					if( d[2] == 'MO'){dstring.push(Math.ceil(d[1])+'. Montag');}
+					if( d[2] == 'TU'){dstring.push(Math.ceil(d[1])+'. Dienstag');}
+					if( d[2] == 'WE'){dstring.push(Math.ceil(d[1])+'. Mittwoch');}
+					if( d[2] == 'TH'){dstring.push(Math.ceil(d[1])+'. Donnerstag');}
+					if( d[2] == 'FR'){dstring.push(Math.ceil(d[1])+'. Freitag');}
+					if( d[2] == 'SA'){dstring.push(Math.ceil(d[1])+'. Samstag');}
+					if( d[2] == 'SU'){dstring.push(Math.ceil(d[1])+'. Sonntag');}
+				}
+			}
+			if(dstring.length > 0) {
+				if(isset(r.interval) && Math.floor(r.interval) > 1) {
+					return "am "+dstring.join('., ')+' jedes '+Math.floor(r.interval)+'. Jahr';
+				}
+				else {
+					return "am "+dstring.join('., ')+' jedes Jahr';
+				}
+			}
+		}
+		if(isset(r.interval) && Math.floor(r.interval) > 1) {
+			return "alle "+Math.floor(r.interval)+" Jahre";
+		}
+		else {
+			return "j&auml;hrlich";
+		}
+	}
+	return 'keine';
 }
 
 function rNewStart(start,r,rend) {
@@ -711,27 +894,47 @@ function generateSpecialData(id,prefix) {
 				for (var i = 0; i < rs.rows.length; i++) {
 					var event = rs.rows.item(i);
 					var d = new Date(event.dtstart*1000);
+					var offset = 0;
 					var pcontent = $('<div/>').attr('data-role',"collapsible").attr('id',prefix+'-'+event.eid).data('dtstart',event.dtstart*1000);
 					if((event.recurrence!=null)&&(event.recurrence.length>0)) {
 						var rend = 0;
 						if((event.rend!=null)&&(event.rend.length>0)) {rend = event.rend; }
-						start = rNewStart(d,JSON.parse(event.recurrence),rend);
+						var start = rNewStart(d,JSON.parse(event.recurrence),rend);
 						if( start === 0 ) { continue;}
 						if((start.getHours()==0)&&(start.getMinutes()==0)) {
 							pcontent.html('<h3>'+event.title+' ('+(start.getDate() < 10 ? '0' + start.getDate() : start.getDate())+'.'+(start.getMonth() < 9 ? '0' + (start.getMonth()+1) : start.getMonth()+1 )+'.'+start.getFullYear()+')</h3>').data('dtstart',start*1);
+							if((event.pic!=null)&&(event.pic.length>0)) { pcontent.append('<div><img src=\''+event.pic+'\' style="float:left;max-width:50%;max-height:150px;" /></div>'); }
+							pcontent.append('<p><b>Beginn:</b> '+(start.getDate() < 10 ? '0' + start.getDate() : start.getDate())+'.'+(start.getMonth() < 9 ? '0' + (start.getMonth() +1) : (start.getMonth()+1))+'.'+start.getFullYear()+'</p>');
 						}
 						else {
 							pcontent.html('<h3>'+event.title+' ('+(start.getDate() < 10 ? '0' + start.getDate() : start.getDate())+'.'+(start.getMonth() < 9 ? '0' + (start.getMonth() +1) : (start.getMonth()+1))+'.'+start.getFullYear()+' '+(start.getHours() < 10 ? '0' + start.getHours() : start.getHours())+":"+(start.getMinutes() < 10 ? '0' + start.getMinutes() : start.getMinutes())+')</h3>').data('dtstart',start*1);
+							if((event.pic!=null)&&(event.pic.length>0)) { pcontent.append('<div><img src=\''+event.pic+'\' style="float:left;max-width:50%;max-height:150px;" /></div>'); }
+							pcontent.append('<p><b>Beginn:</b> '+(start.getDate() < 10 ? '0' + start.getDate() : start.getDate())+'.'+(start.getMonth() < 9 ? '0' + (start.getMonth() +1) : (start.getMonth()+1))+'.'+start.getFullYear()+' '+(start.getHours() < 10 ? '0' + start.getHours() : start.getHours())+":"+(start.getMinutes() < 10 ? '0' + start.getMinutes() : start.getMinutes())+'</p>');
 						}
+						offset = (start.valueOf()-d.valueOf());
+						if(isset(event.dtend)) {
+							var end = new Date(event.dtend*1000);
+							end = new Date(end.valueOf() + offset);
+							pcontent.append('<p><b>Ende:</b> '+(end.getDate() < 10 ? '0' + end.getDate() : end.getDate())+'.'+(end.getMonth() < 9 ? '0' + (end.getMonth() +1) : (end.getMonth()+1))+'.'+end.getFullYear()+' '+(end.getHours() < 10 ? '0' + end.getHours() : end.getHours())+":"+(end.getMinutes() < 10 ? '0' + end.getMinutes() : end.getMinutes())+'</p>');
+						}
+						pcontent.append('<p><b>Wiederholungsregel:</b> '+rString(JSON.parse(event.recurrence))+'</p>');
 					} else {
 						if((d.getHours()==0)&&(d.getMinutes()==0)) {
 							pcontent.html('<h3>'+event.title+' ('+(d.getDate() < 10 ? '0' + d.getDate() : d.getDate())+'.'+(d.getMonth() < 9 ? '0' + (d.getMonth()+1) : d.getMonth()+1 )+'.'+d.getFullYear()+')</h3>');
+							if((event.pic!=null)&&(event.pic.length>0)) { pcontent.append('<div><img src=\''+event.pic+'\' style="float:left;max-width:50%;max-height:150px;" /></div>'); }
+							pcontent.append('<p><b>Beginn:</b> '+(d.getDate() < 10 ? '0' + d.getDate() : d.getDate())+'.'+(d.getMonth() < 9 ? '0' + (d.getMonth() +1) : (d.getMonth()+1))+'.'+d.getFullYear()+'</p>');
 						}
 						else {
 							pcontent.html('<h3>'+event.title+' ('+(d.getDate() < 10 ? '0' + d.getDate() : d.getDate())+'.'+(d.getMonth() < 9 ? '0' + (d.getMonth() +1) : (d.getMonth()+1))+'.'+d.getFullYear()+' '+(d.getHours() < 10 ? '0' + d.getHours() : d.getHours())+":"+(d.getMinutes() < 10 ? '0' + d.getMinutes() : d.getMinutes())+')</h3>');
+							if((event.pic!=null)&&(event.pic.length>0)) { pcontent.append('<div><img src=\''+event.pic+'\' style="float:left;max-width:50%;max-height:150px;" /></div>'); }
+							pcontent.append('<p><b>Beginn:</b> '+(d.getDate() < 10 ? '0' + d.getDate() : d.getDate())+'.'+(d.getMonth() < 9 ? '0' + (d.getMonth() +1) : (d.getMonth()+1))+'.'+d.getFullYear()+' '+(d.getHours() < 10 ? '0' + d.getHours() : d.getHours())+":"+(d.getMinutes() < 10 ? '0' + d.getMinutes() : d.getMinutes())+'</p>');
+						}
+						if(isset(event.dtend)) { 
+							var end = new Date(event.dtend*1000);
+							pcontent.append('<p><b>Ende:</b> '+(end.getDate() < 10 ? '0' + end.getDate() : end.getDate())+'.'+(end.getMonth() < 9 ? '0' + (end.getMonth() +1) : (end.getMonth()+1))+'.'+end.getFullYear()+' '+(end.getHours() < 10 ? '0' + end.getHours() : end.getHours())+":"+(end.getMinutes() < 10 ? '0' + end.getMinutes() : end.getMinutes())+'</p>');
 						}
 					}
-					if((event.pic!=null)&&(event.pic.length>0)) { pcontent.append('<div><img src=\''+event.pic+'\' style="float:left;max-width:50%;max-height:150px;" /></div>'); }
+					pcontent.attr('data-offset',offset);
 					if((event.summary != null)&&(event.summary.length > 0)) { pcontent.append('<p>'+event.summary+'</p>'); }
 					if((event.adress!=null)&&(event.adress.length>0)&&(event.lat!=0)&&(event.lon!=0)) {
 						var pc = $('<a class="iconPlace" data-inline="true" data-role="button" href="geo:'+event.lat+','+event.lon+'">'+event.adress+'</a>');
@@ -757,17 +960,26 @@ function generateSpecialData(id,prefix) {
 					tx.executeSql("SELECT * FROM event WHERE id = '"+id+"' AND subevent ='"+event.eid+"';" , [], function(tx2,rs2) {
 						if(rs2.rows.length>0) {
 							// Collapse Menü erstellen
+							var soffset = $('#'+prefix+'-'+event.eid).data( "offset" );
 							for (var j = 0; j < rs2.rows.length; j++) {
 								var sevent = rs2.rows.item(j);
-								var d = new Date(sevent.dtstart*1000);
+								var d = new Date(sevent.dtstart*1000+soffset);
 								var spcontent = $('<div/>').attr('data-role',"collapsible");
 								if((d.getHours()==0)&&(d.getMinutes()==0)) {
 									spcontent.html('<h3>'+sevent.title+' ('+(d.getDate() < 10 ? '0' + d.getDate() : d.getDate())+'.'+(d.getMonth() < 10 ? '0' + d.getMonth() : d.getMonth())+'.'+d.getFullYear()+')</h3>');
+									if((sevent.pic!=null)&&(sevent.pic.length>0)) { spcontent.append('<div><img src=\''+sevent.pic+'\' style="float:left;max-width:50%;max-height:150px;" /></div>'); }
+									spcontent.append('<p><b>Beginn:</b> '+(d.getDate() < 10 ? '0' + d.getDate() : d.getDate())+'.'+(d.getMonth() < 9 ? '0' + (d.getMonth() +1) : (d.getMonth()+1))+'.'+d.getFullYear()+'</p>');
 								}
 								else {
 									spcontent.html('<h3>'+sevent.title+' ('+(d.getDate() < 10 ? '0' + d.getDate() : d.getDate())+'.'+(d.getMonth() < 10 ? '0' + d.getMonth() : d.getMonth())+'.'+d.getFullYear()+' '+(d.getHours() < 10 ? '0' + d.getHours() : d.getHours())+":"+(d.getMinutes() < 10 ? '0' + d.getMinutes() : d.getMinutes())+')</h3>');
+									if((sevent.pic!=null)&&(sevent.pic.length>0)) { spcontent.append('<div><img src=\''+sevent.pic+'\' style="float:left;max-width:50%;max-height:150px;" /></div>'); }
+									spcontent.append('<p><b>Beginn:</b> '+(d.getDate() < 10 ? '0' + d.getDate() : d.getDate())+'.'+(d.getMonth() < 9 ? '0' + (d.getMonth() +1) : (d.getMonth()+1))+'.'+d.getFullYear()+' '+(d.getHours() < 10 ? '0' + d.getHours() : d.getHours())+":"+(d.getMinutes() < 10 ? '0' + d.getMinutes() : d.getMinutes())+'</p>');
 								}
-								if((sevent.pic!=null)&&(sevent.pic.length>0)) { spcontent.append('<div><img src=\''+sevent.pic+'\' style="float:left;max-width:50%;max-height:150px;" /></div>'); }
+								
+								if(isset(sevent.dtend)) { 
+									var end = new Date(sevent.dtend*1000+soffset);
+									spcontent.append('<p><b>Ende:</b> '+(end.getDate() < 10 ? '0' + end.getDate() : end.getDate())+'.'+(end.getMonth() < 9 ? '0' + (end.getMonth() +1) : (end.getMonth()+1))+'.'+end.getFullYear()+' '+(end.getHours() < 10 ? '0' + end.getHours() : end.getHours())+":"+(end.getMinutes() < 10 ? '0' + end.getMinutes() : end.getMinutes())+'</p>');
+								}
 								if((sevent.summary!=null)&&(sevent.summary.length>0)) { spcontent.append('<p>'+sevent.summary+'</p>'); }
 //								console.log(sevent);
 								if((sevent.adress!=null)&&(sevent.adress.length>0)&&(sevent.lat!=0)&&(sevent.lon!=0)) {
@@ -1149,35 +1361,6 @@ function entfernungBerechnen(lat2,lon2) {
 	return Math.round(Math.sqrt((dx*dx) + (dy*dy)));
 	return Math.round(d*10)/10;
 };
-
-function akhJSON1(json) {
-	$('#akh_people').html('<h2>Ansprechpartner</h2>');
-	$.each(json.people, function(index, value) {
-		//console.log(value.name);
-		var pcontent = $('<div/>').attr('data-role',"collapsible").html('<h3>'+value.name+' ('+value.title+')</h3>');
-		if(isset(value.pic)) { pcontent.append('<div><img src=\''+value.pic+'\' style="float:left;max-width:50%;max-height:150px;" /></div>'); }
-		if(isset(value.tel) || isset(value.mail)) {
-			var pc = $('<p/>');
-			if(isset(value.tel)) { pc.append('<a class="iconTel" data-inline="true" data-role="button" href=\'tel:'+value.tel+'\'>'+value.tel+'</a></div>'); }
-			if(isset(value.mail)) { pc.append('<a class="iconMail" data-inline="true" data-role="button" href=\'mailto:'+value.mail+'\'>'+value.mail+'</a></div></p>'); }
-			pcontent.append(pc);
-		}
-		$('#akh_people').append(pcontent);
-	});
-	$.each(json.event, function(index, value) {
-		//console.log(value.title+' '+value.dtstart);
-		var d = new Date(value.dtstart);
-		var pcontent = $('<div/>').attr('data-role',"collapsible").html('<h3>'+value.title+' ('+d.getDate()+'.'+d.getMonth()+'.'+d.getFullYear()+')</h3>');
-		if(isset(value.pic)) { pcontent.append('<div><img src=\''+value.pic+'\' style="float:left;max-width:50%;max-height:150px;" /></div>'); }
-		if(isset(value.desc)) { pcontent.append('<p>'+value.desc+'</p>'); }
-		if( isset(value.adress) && isset(value.lat)&& isset(value.lon)) {
-			var pc = $('<div><a class="iconPlace" data-inline="true" data-role="button" href="geo:'+value.lat+','+value.lon+'">'+value.adress+'</a></div>');
-			pcontent.append(pc);
-		}
-		$('#akh_event').append(pcontent);
-	});
-	$('#akh_content').trigger( "create" );
-}
 /*
 $(document).ready(function() {
 	onDeviceReady();
