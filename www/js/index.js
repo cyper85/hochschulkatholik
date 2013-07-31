@@ -996,10 +996,11 @@ function onDeviceReady() {
 var gemeindefillBool = 0;
 function gemeindefill(hBool) {
 	if(hBool == null) { hBool = 0; }
-	if(gemeindefillBool-hBool > 1) { return true; }
+	if(gemeindefillBool-hBool > 1 || hBool > 30) { return true; }
 	if(hBool > 1 && gemeindefillBool-hBool < 1 ) { return true; }
 	if(gemeindefillBool-hBool == 1) {
 		gemeindefillBool++;
+		console.log('gemeindefill');
 		window.setTimeout(function(){gemeindefill(hBool+1);}, 1000);
 	}
 	gemeindefillBool = 1;
@@ -1013,7 +1014,7 @@ function gemeindefill(hBool) {
 				var gemeinde = rs.rows.item(i);
 				//console.log('gemeindeliste einfüllen:'+gemeinde.id);
 				var strecke = entfernungBerechnen(gemeinde.lat,gemeinde.lon);
-				$('#gemeindeliste').append('<li><a href="#gemeinde" onclick="setGemeinde(\''+gemeinde.id+'\')">'+gemeinde.kurz+' '+gemeinde.ort+' <span class="ui-li-count">'+strecke+'km</span></a></li>');
+				$('#gemeindeliste').append($('<li/>').html($('<a/>').attr('href','#gemeinde').attr('data-gemeindeid',gemeinde.id).click(function(){setGemeinde($(this).data('gemeindeid'));}).html(gemeinde.kurz+' '+gemeinde.ort+' <span class="ui-li-count">'+strecke+'km</span>')));
 				if(strecke < kurzestrecke) { 
 					nextksg = gemeinde.id;
 					kurzestrecke = strecke;
@@ -1025,8 +1026,7 @@ function gemeindefill(hBool) {
 		});
 		// Favoriten aufbauen
 		makeFavList();
-		gemeindefillBool = 0;
-	});
+	}, function() { gemeindefillBool = 0;},function() { gemeindefillBool = 0;});
 }
 
 function setGemeinde(id,prefix) {
@@ -1099,35 +1099,35 @@ function makeFav(id) {
 var FavListBool = 0;
 function makeFavList(hBool) {
 	if(hBool == null) { hBool = 0; }
-	if(FavListBool-hBool > 1) { return true; }
+	if(FavListBool-hBool > 1 || hBool > 30) { return true; }
 	if(hBool > 1 && FavListBool-hBool < 1 ) { return true; }
 	if(FavListBool-hBool == 1) {
 		FavListBool++;
+		console.log('favlist');
 		window.setTimeout(function(){makeFavList(hBool+1);}, 1000);
 	}
 	FavListBool = 1;
-	$('#fav_gemeindeliste').html('');
 	db.transaction(function(tx) {
 		tx.executeSql("SELECT id FROM fav ORDER BY id" , [], function(tx,rs) {
 			//console.log('Soviele gibt es: '+rs.rows.length);
 			for(var i = 0; i < rs.rows.length; i++) {
 				var favgemeinde = rs.rows.item(i);
 				//console.log('fav: '+favgemeinde.id);
+				$('#fav_gemeindeliste').html('');
 				tx.executeSql("SELECT * FROM gemeinde WHERE id = ?;", [favgemeinde.id], function(tx2,rs2) {
 					for (var j = 0; j < rs2.rows.length; j++) {
 						var gemeinde = rs2.rows.item(j);
 						//console.log('gemeindeliste einfüllen:'+gemeinde.id);
 						var strecke = entfernungBerechnen(gemeinde.lat,gemeinde.lon);
-						$('#fav_gemeindeliste').append('<li><a href="#gemeinde" onclick="setGemeinde(\''+gemeinde.id+'\')">'+gemeinde.kurz+' '+gemeinde.ort+' <span class="ui-li-count">'+strecke+'km</span></a></li>');
+						$('#fav_gemeindeliste').append($('<li/>').html($('<a/>').attr('href','#gemeinde').attr('data-gemeindeid',gemeinde.id).click(function(){setGemeinde($(this).data('gemeindeid'));}).html(gemeinde.kurz+' '+gemeinde.ort+' <span class="ui-li-count">'+strecke+'km</span>')));
 						//console.log(gemeinde.id+': '+strecke+' km');
 					}
-					//console.log('refresh collaps');
+					$('#fav_gemeindeliste').listview()
 					$('#fav_gemeindeliste').listview('refresh');
 				});
 			}
 		});
-		FavListBool = 0;
-	});
+	}, function() { FavListBool = 0;},function() { FavListBool = 0;});
 }
 
 function entfernungBerechnen(lat2,lon2) {
