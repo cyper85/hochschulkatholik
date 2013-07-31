@@ -918,14 +918,15 @@ function onDeviceReady() {
 	//console.log('Tabellen erstellen');
 	db.transaction(function(tx) {
 		$('#gemeindeliste').append('<li><a href="#">oje</a></li>');
-		/*
-		tx.executeSql('DROP TABLE dataInfo;');
-		tx.executeSql('DROP TABLE gemeinde;');
-		tx.executeSql('DROP TABLE additional;');
-		tx.executeSql('DROP TABLE place;');
-		tx.executeSql('DROP TABLE people;');
-		tx.executeSql('DROP TABLE event;');
-		*/
+		if(!isset(localStorage.getItem("dataInfo")) || localStorage.getItem("dataInfo") == '' || global_json.dataInfo > localStorage.getItem("dataInfo")) {
+			tx.executeSql('DROP TABLE dataInfo;');
+			tx.executeSql('DROP TABLE gemeinde;');
+			tx.executeSql('DROP TABLE additional;');
+			tx.executeSql('DROP TABLE place;');
+			tx.executeSql('DROP TABLE people;');
+			tx.executeSql('DROP TABLE event;');
+			localStorage.setItem("dataInfo", global_json.dataInfo);
+		}
 		tx.executeSql('CREATE TABLE IF NOT EXISTS dataInfo (id TEXT PRIMARY KEY, data TEXT)');
 		tx.executeSql('CREATE TABLE IF NOT EXISTS gemeinde (id TEXT PRIMARY KEY, kurz TEXT NOT NULL, lang TEXT NOT NULL, strasse TEXT NOT NULL, ort TEXT NOT NULL, plz TEXT NOT NULL, patron TEXT, url TEXT, configurl TEXT, lat REAL, lon REAL)');
 		tx.executeSql('CREATE TABLE IF NOT EXISTS fav (id TEXT PRIMARY KEY)');
