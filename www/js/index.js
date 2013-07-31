@@ -994,11 +994,13 @@ function onDeviceReady() {
 }
 
 var gemeindefillBool = 0;
-function gemeindefill() {
-	if(gemeindefillBool == 2) { return true; }
-	if(gemeindefillBool == 1) {
-		gemeindefillBool = 2;
-		while(gemeindefillBool == 2) {}
+function gemeindefill(hBool) {
+	if(hBool == null) { hBool = 0; }
+	if(gemeindefillBool-hBool > 1) { return true; }
+	if(hBool > 1 && gemeindefillBool-hBool < 1 ) { return true; }
+	if(gemeindefillBool-hBool == 1) {
+		gemeindefillBool++;
+		window.setTimeout(function(){gemeindefill(hBool+1);}, 1000);
 	}
 	gemeindefillBool = 1;
 	var kurzestrecke = 10000;
@@ -1095,11 +1097,13 @@ function makeFav(id) {
 }
 
 var FavListBool = 0;
-function makeFavList() {
-	if(FavListBool == 2) { return true; }
-	if(FavListBool == 1) {
-		FavListBool = 2;
-		while(FavListBool == 2) {}
+function makeFavList(hBool) {
+	if(hBool == null) { hBool = 0; }
+	if(FavListBool-hBool > 1) { return true; }
+	if(hBool > 1 && FavListBool-hBool < 1 ) { return true; }
+	if(FavListBool-hBool == 1) {
+		FavListBool++;
+		window.setTimeout(function(){makeFavList(hBool+1);}, 1000);
 	}
 	FavListBool = 1;
 	$('#fav_gemeindeliste').html('');
