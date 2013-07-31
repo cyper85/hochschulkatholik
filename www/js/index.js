@@ -993,7 +993,14 @@ function onDeviceReady() {
 	generateSpecialData('akh','akh');
 }
 
+var gemeindefillBool = 0;
 function gemeindefill() {
+	if(gemeindefillBool == 2) { return true; }
+	if(gemeindefillBool == 1) {
+		gemeindefillBool = 2;
+		while(gemeindefillBool == 2) {}
+	}
+	gemeindefillBool = 1;
 	var kurzestrecke = 10000;
 	var nextksg = '';
 	//console.log('gemeindeliste füllen');
@@ -1016,6 +1023,7 @@ function gemeindefill() {
 		});
 		// Favoriten aufbauen
 		makeFavList();
+		gemeindefillBool = 0;
 	});
 }
 
@@ -1086,7 +1094,14 @@ function makeFav(id) {
 	});
 }
 
+var FavListBool = 0;
 function makeFavList() {
+	if(FavListBool == 2) { return true; }
+	if(FavListBool == 1) {
+		FavListBool = 2;
+		while(FavListBool == 2) {}
+	}
+	FavListBool = 1;
 	$('#fav_gemeindeliste').html('');
 	db.transaction(function(tx) {
 		tx.executeSql("SELECT id FROM fav ORDER BY id" , [], function(tx,rs) {
@@ -1107,6 +1122,7 @@ function makeFavList() {
 				});
 			}
 		});
+		FavListBool = 0;
 	});
 }
 
