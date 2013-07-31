@@ -1103,7 +1103,7 @@ function makeFavList() {
 						//console.log(gemeinde.id+': '+strecke+' km');
 					}
 					//console.log('refresh collaps');
-					$('#fav_gemeindeliste').trigger( "create" );
+					$('#fav_gemeindeliste').listview('refresh');
 				});
 			}
 		});
