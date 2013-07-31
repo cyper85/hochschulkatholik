@@ -903,6 +903,12 @@ function geolocationSuccess(position) {
 }
 
 function onDeviceReady() {
+
+	$('#fav').bind('pageshow', function() {
+        console.log('show nearby');
+		$('#fav_gemeindeliste').listview();
+		$('#fav_gemeindeliste').listview('refresh');
+    });
 	// Geo-Daten
 	if(localStorage.getItem("lat")) {
 		lat = localStorage.getItem("lat");
@@ -1122,8 +1128,6 @@ function makeFavList(hBool) {
 						$('#fav_gemeindeliste').append($('<li/>').html($('<a/>').attr('href','#gemeinde').attr('data-gemeindeid',gemeinde.id).click(function(){setGemeinde($(this).data('gemeindeid'));}).html(gemeinde.kurz+' '+gemeinde.ort+' <span class="ui-li-count">'+strecke+'km</span>')));
 						//console.log(gemeinde.id+': '+strecke+' km');
 					}
-					$('#fav_gemeindeliste').listview()
-					$('#fav_gemeindeliste').listview('refresh');
 				});
 			}
 		});
