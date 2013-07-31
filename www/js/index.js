@@ -1026,8 +1026,7 @@ function gemeindefill(hBool) {
 			setGemeinde(nextksg,'main');
 		});
 		// Favoriten aufbauen
-		makeFavList();
-	}, function() { gemeindefillBool = 0;},function() { gemeindefillBool = 0;});
+	}, function() { gemeindefillBool = 0; makeFavList();},function() { gemeindefillBool = 0; makeFavList();});
 }
 
 function setGemeinde(id,prefix) {
@@ -1081,14 +1080,14 @@ function makeFav(id) {
 				db.transaction(function(tx) {
 					//console.log('Erstelle Fav');
 					tx.executeSql('INSERT INTO fav (id) values (\''+id+'\');');
-					makeFavList();
+					window.setTimeout(makeFavList, 500);
 				});
 			}
 			else {
 				db.transaction(function(tx) {
 					//console.log('Lösche Fav');
 					tx.executeSql('DELETE FROM fav WHERE id = \''+id+'\';');
-					makeFavList();
+					window.setTimeout(makeFavList, 500);
 				}, function (tx, err) { 
 					//console.log("Rückgabe: "+tx.code+' '+tx.message); 
 				});
