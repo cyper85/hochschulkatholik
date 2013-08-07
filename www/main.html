@@ -1,4 +1,7 @@
 <!DOCTYPE html>
+<?php
+if(!isset($_GET['json']) && !isset($_GET['url'])) { return "<html><head><title>Keine Daten</title></head><body><h1>Keine Daten &uuml;bertragen!</h1></body></html>\n"; exit;}
+?>
 <!--
     Licensed to the Apache Software Foundation (ASF) under one
     or more contributor license agreements.  See the NOTICE file
@@ -45,8 +48,10 @@
 				<p>Nächste Hochschulgemeinde:</p>
 				
 				<h2 id='maingemeindename'></h2>
-				<img src="" class='gemeindebild' id = 'main_logo' />
-				<p id='maingemeindeadresse'></p>
+				<div class='adressdiv'>
+					<img src="" class='gemeindebild' id = 'main_logo' />
+					<div id='maingemeindeadresse' class='gemeindeadresse'></div>
+				</div>
 				<div data-role="controlgroup" id='maingemeindebleiste' data-type='horizontal'>
 					<a href='geo:' class='CustomIconButton' id='maingemeindebleiste_karte' data-role="button">p</a>
 					<a href='#' id='maingemeindebleiste_zusatz' onclick='' class='CustomIconButton' data-role="button">i</a>
@@ -77,11 +82,23 @@
 				</div><!-- /navbar -->
 			</div>
 			<div id='akh_content' data-role="content">
+				<div class='adressdiv'>
+					<img src="" class='gemeindebild' id = 'main_logo' />
+					<div id='maingemeindeadresse' class='gemeindeadresse'>
+						Arbeitsgemeinschaft Katholischer Hochschulgemeinden<br/>
+						Rheinweg 34<br/>
+						53113 Bonn<br/><br/>
+						<a href='http://www.fhok.de' target='_blank'>fhok.de</a>
+					</div>
+				</div>
 				<div data-role="controlgroup" id='maingemeindebleiste' data-type='horizontal'>
 					<a href='geo:50.71631445134514,7.116947695106566;u=Forum Hochschule und Kirche' class='CustomIconButton' id='akhgemeindebleiste_karte' data-role="button">p</a>
 					<a href='https://www.facebook.com/pages/AKH-Arbeitsgemeinschaft-Katholischer-Hochschulgemeinden/113820958642804' id='akhgemeindebleiste_facebook' onclick='' target='_blank' class='CustomIconButton' data-role="button">f</a>
 				</div>
 				<div id='akh_additional'>
+					<a class="iconTel" data-inline="true" data-role="button" href="tel:(02 28) 9 23 67-0">(02 28) 9 23 67-0</a>
+					<a class="iconTel" data-inline="true" data-role="button" href="tel:(02 28) 9 23 67-15">(02 28) 9 23 67-15</a>
+					<a class="iconTel" data-inline="true" data-role="button" href="mailto:info@fhok.de">info@fhok.de</a>
 				</div>
 				<div id='akh_event'>
 				</div>
@@ -154,8 +171,10 @@
 			</div>
 			<div data-role="content">
 				<h1 id='gemeindename'></h1>
-				<img src="" class='gemeindebild' id = '_logo' />
-				<p id='gemeindeadresse'></p>
+				<div class='adressdiv'>
+					<img src="" class='gemeindebild' id = '_logo' />
+					<div id='gemeindeadresse' class='gemeindeadresse'></div>
+				</div>
 				<div data-role="controlgroup" id='gemeindebleiste' data-type='horizontal'>
 					<a href='geo:' class='CustomIconButton' id='gemeindebleiste_karte' data-role="button">p</a>
 					<a href='#' id='gemeindebleiste_zusatz' onclick='' class='CustomIconButton' data-role="button">i</a>
