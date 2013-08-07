@@ -460,4 +460,14 @@ line-height:auto;
 	float:left;
 	max-width:100px;
 	max-height:100px;
+	vertical-align:middle;
+}
+
+.gemeindeadresse {
+	display:inline-block;
+	vertical-align:middle;
+}
+
+.adressdiv {
+	display:inline-block;
 }

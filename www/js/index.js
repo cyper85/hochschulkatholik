@@ -37,19 +37,10 @@ function testJson(json) {
 	return true;
 }
 
-function sortEvents(events) {
-	var j = 1;
-	while(j < events.length) {
-		for(var i = j; i < events.length; i++ ){
-			if(events[i].data('dtstart') < events[i-1].data('dtstart')) {
-				var h = events[i];
-				events[i] = events[i-1];
-				events[i-1] = h;
-			}
-		}
-		j++;
-	}
-	return events;
+function sortEvents(a,b) {
+	if(a.data('dtstart') < b.data('dtstart')) { return -1; }
+	if(a.data('dtstart') > b.data('dtstart')) { return 1; }
+	return 0;
 }
 
 function isset(object) {
@@ -667,18 +658,20 @@ dataImport = function(data,id) {
 		// Zusatzdaten
 		if(data.additional) {
 			if(isset(data.additional.url) && data.additional.url.toString().match(/^https?:\/\/.+/i)) { tx.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);", [id,'url',htmlentities(data.additional.url)]); }
+			if(isset(data.additional.mail) && data.additional.mail.toString().match(/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$/i)) { tx.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);", [id,'mail',htmlentities(data.additional.mail)]); }
 			if(isset(data.additional.facebook) && data.additional.facebook.toString().match(/^[a-z\d\.]{5,}$/)) { 
 				$.getJSON( 'http://graph.facebook.com/'+data.additional.facebook, 
 					(function(thisid) {
 						return function(data) {
 							if(isset(data.link)) {
-								tx.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);",[thisid,'facebook',data.link]);
+								db.transaction(function(tx2) {
+									tx2.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);",[thisid,'facebook',data.link]);
+								});
 							}
 						};
 					}(gemeinde.id)));
 			}
 			if(isset(data.additional.twitter) && data.additional.twitter.toString().match(/^[A-Za-z0-9_]{1,15}$/i)) { tx.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);",[id,'twitter','https://www.twitter.com/'+htmlentities(data.additional.twitter.toString())]); }
-			console.log('https://www.twitter.com/'+htmlentities(data.additional.twitter.toString()));
 			if(isset(data.additional.google) && data.additional.google.toString().match(/^[a-z\d\.]{5,}$/)) { tx.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);",[id,'google','https://plus.google.com/'+htmlentities(data.additional.google.toString())]); }
 			if(isset(data.additional.logo) && data.additional.logo.toString().match(/^https?:\/\/.*(png|jpg|jpeg|gif|bmp)$/i)) { tx.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);",[id,'logo',htmlentities(data.additional.logo)]); }
 			if(isset(data.additional.tel)) { tx.executeSql("INSERT INTO additional (id,key,value) VALUES (?,?,?);",[id,'tel',htmlentities(data.additional.tel)]); }
@@ -713,7 +706,7 @@ dataImport = function(data,id) {
 						$.getJSON( 'http://graph.facebook.com/'+people.facebook, 
 							(function(thisid,thisi) {
 								return function(data) {
-									console.log(data);
+//									console.log(data);
 									if(isset(data.link)) {
 										afterSqlPeople.push([data.link , thisid+'-'+thisi]);
 									}
@@ -750,7 +743,7 @@ dataImport = function(data,id) {
 					var jetzt = new Date();
 					//console.log([id,id+"-"+i,title,summary,adress,lat,lon,facebook,google,pic,url,costs,0,dtstart,dtend,recurrence,rend,jetzt.getTime()]);
 					if((jetzt.getTime() < dtend*1000)||(jetzt.getTime() < rend)||(isset(event.recurrence)&&!isset(event.rend))) {
-						console.log('insert into db: '+title);
+//						console.log('insert into db: '+title);
 						tx.executeSql("INSERT INTO event (id, eid, title, summary, adress, lat, lon, facebook, google, pic, url, costs, subevent, dtstart, dtend, recurrence, rend) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);",[id,id+"-"+i,title,summary,adress,lat,lon,facebook,google,pic,url,costs,'root',dtstart,dtend,recurrence,rend]);
 						if(isset(event.subevent)&&(event.subevent.length>0)) {
 							for(var j = 0; j < event.subevent.length; j++) {
@@ -814,7 +807,7 @@ dataImport = function(data,id) {
 						$.getJSON( 'http://graph.facebook.com/'+place.facebook, 
 							(function(thisid,thisi) {
 								return function(data) {
-									console.log(data);
+//									console.log(data);
 									if(isset(data.link)) {
 										afterSqlPeople.push([data.link , thisid+'-'+thisi]);
 									}
@@ -836,7 +829,7 @@ dataImport = function(data,id) {
 
 function afterSql() {
 	window.setTimeout(function(){
-		console.log(afterSqlPeople);	
+//		console.log(afterSqlPeople);	
 		db.transaction(function(tx) {
 			for (var i = 0; i < afterSqlPeople.length; i++ ) {
 				tx.executeSql("UPDATE people SET facebook = ? WHERE facebook = ?;",afterSqlPeople[i]);
@@ -877,6 +870,10 @@ function generateSpecialData(id,prefix) {
 					var pc = $('<a class="iconWWW" data-inline="true" data-role="button" href="'+zusatz.value+'">'+zusatz.value.replace(/^http[s]?\:\/\/(www\.)?/gi, "")+'</a>');
 					$("#"+prefix+"_additional").append(pc);
 				}
+				if(zusatz.key == 'mail') {
+					var pc = $('<a class="iconMail" data-inline="true" data-role="button" href="mailto:'+zusatz.value+'">'+zusatz.value+'</a>');
+					$("#"+prefix+"_additional").append(pc);
+				}
 				if(zusatz.key == 'facebook') { $('#'+prefix+'_facebook').attr('href',zusatz.value).removeClass('hidden'); }
 				if(zusatz.key == 'twitter') { $('#'+prefix+'_twitter').attr('href',zusatz.value).removeClass('hidden'); }
 				if(zusatz.key == 'google') { $('#'+prefix+'_google').attr('href',zusatz.value).removeClass('hidden'); }
@@ -895,19 +892,19 @@ function generateSpecialData(id,prefix) {
 					var event = rs.rows.item(i);
 					var d = new Date(event.dtstart*1000);
 					var offset = 0;
-					var pcontent = $('<div/>').attr('data-role',"collapsible").attr('id',prefix+'-'+event.eid).data('dtstart',event.dtstart*1000);
+					var pcontent = $('<div/>').attr('data-role',"collapsible").attr('id',prefix+'-'+event.eid).attr('data-dtstart',event.dtstart*1000);
 					if((event.recurrence!=null)&&(event.recurrence.length>0)) {
 						var rend = 0;
 						if((event.rend!=null)&&(event.rend.length>0)) {rend = event.rend; }
 						var start = rNewStart(d,JSON.parse(event.recurrence),rend);
 						if( start === 0 ) { continue;}
 						if((start.getHours()==0)&&(start.getMinutes()==0)) {
-							pcontent.html('<h3>'+event.title+' ('+(start.getDate() < 10 ? '0' + start.getDate() : start.getDate())+'.'+(start.getMonth() < 9 ? '0' + (start.getMonth()+1) : start.getMonth()+1 )+'.'+start.getFullYear()+')</h3>').data('dtstart',start*1);
+							pcontent.html('<h3>'+event.title+' ('+(start.getDate() < 10 ? '0' + start.getDate() : start.getDate())+'.'+(start.getMonth() < 9 ? '0' + (start.getMonth()+1) : start.getMonth()+1 )+'.'+start.getFullYear()+')</h3>').attr('data-dtstart',start*1);
 							if((event.pic!=null)&&(event.pic.length>0)) { pcontent.append('<div><img src=\''+event.pic+'\' style="float:left;max-width:50%;max-height:150px;" /></div>'); }
 							pcontent.append('<p><b>Beginn:</b> '+(start.getDate() < 10 ? '0' + start.getDate() : start.getDate())+'.'+(start.getMonth() < 9 ? '0' + (start.getMonth() +1) : (start.getMonth()+1))+'.'+start.getFullYear()+'</p>');
 						}
 						else {
-							pcontent.html('<h3>'+event.title+' ('+(start.getDate() < 10 ? '0' + start.getDate() : start.getDate())+'.'+(start.getMonth() < 9 ? '0' + (start.getMonth() +1) : (start.getMonth()+1))+'.'+start.getFullYear()+' '+(start.getHours() < 10 ? '0' + start.getHours() : start.getHours())+":"+(start.getMinutes() < 10 ? '0' + start.getMinutes() : start.getMinutes())+')</h3>').data('dtstart',start*1);
+							pcontent.html('<h3>'+event.title+' ('+(start.getDate() < 10 ? '0' + start.getDate() : start.getDate())+'.'+(start.getMonth() < 9 ? '0' + (start.getMonth() +1) : (start.getMonth()+1))+'.'+start.getFullYear()+' '+(start.getHours() < 10 ? '0' + start.getHours() : start.getHours())+":"+(start.getMinutes() < 10 ? '0' + start.getMinutes() : start.getMinutes())+')</h3>').attr('data-dtstart',start*1);
 							if((event.pic!=null)&&(event.pic.length>0)) { pcontent.append('<div><img src=\''+event.pic+'\' style="float:left;max-width:50%;max-height:150px;" /></div>'); }
 							pcontent.append('<p><b>Beginn:</b> '+(start.getDate() < 10 ? '0' + start.getDate() : start.getDate())+'.'+(start.getMonth() < 9 ? '0' + (start.getMonth() +1) : (start.getMonth()+1))+'.'+start.getFullYear()+' '+(start.getHours() < 10 ? '0' + start.getHours() : start.getHours())+":"+(start.getMinutes() < 10 ? '0' + start.getMinutes() : start.getMinutes())+'</p>');
 						}
@@ -915,23 +912,33 @@ function generateSpecialData(id,prefix) {
 						if(isset(event.dtend)) {
 							var end = new Date(event.dtend*1000);
 							end = new Date(end.valueOf() + offset);
-							pcontent.append('<p><b>Ende:</b> '+(end.getDate() < 10 ? '0' + end.getDate() : end.getDate())+'.'+(end.getMonth() < 9 ? '0' + (end.getMonth() +1) : (end.getMonth()+1))+'.'+end.getFullYear()+' '+(end.getHours() < 10 ? '0' + end.getHours() : end.getHours())+":"+(end.getMinutes() < 10 ? '0' + end.getMinutes() : end.getMinutes())+'</p>');
+							if((start.getHours()==0)&&(start.getMinutes()==0)&&(end.getHours()==0)&&(end.getMinutes()==0)) {
+								pcontent.append('<p><b>Ende:</b> '+(end.getDate() < 10 ? '0' + end.getDate() : end.getDate())+'.'+(end.getMonth() < 9 ? '0' + (end.getMonth() +1) : (end.getMonth()+1))+'.'+end.getFullYear()+'</p>');
+							}
+							else {
+								pcontent.append('<p><b>Ende:</b> '+(end.getDate() < 10 ? '0' + end.getDate() : end.getDate())+'.'+(end.getMonth() < 9 ? '0' + (end.getMonth() +1) : (end.getMonth()+1))+'.'+end.getFullYear()+' '+(end.getHours() < 10 ? '0' + end.getHours() : end.getHours())+":"+(end.getMinutes() < 10 ? '0' + end.getMinutes() : end.getMinutes())+'</p>');
+							}
 						}
 						pcontent.append('<p><b>Wiederholungsregel:</b> '+rString(JSON.parse(event.recurrence))+'</p>');
 					} else {
 						if((d.getHours()==0)&&(d.getMinutes()==0)) {
-							pcontent.html('<h3>'+event.title+' ('+(d.getDate() < 10 ? '0' + d.getDate() : d.getDate())+'.'+(d.getMonth() < 9 ? '0' + (d.getMonth()+1) : d.getMonth()+1 )+'.'+d.getFullYear()+')</h3>');
+							pcontent.html('<h3>'+event.title+' ('+(d.getDate() < 10 ? '0' + d.getDate() : d.getDate())+'.'+(d.getMonth() < 9 ? '0' + (d.getMonth()+1) : d.getMonth()+1 )+'.'+d.getFullYear()+')</h3>').attr('data-dtstart',d*1);
 							if((event.pic!=null)&&(event.pic.length>0)) { pcontent.append('<div><img src=\''+event.pic+'\' style="float:left;max-width:50%;max-height:150px;" /></div>'); }
 							pcontent.append('<p><b>Beginn:</b> '+(d.getDate() < 10 ? '0' + d.getDate() : d.getDate())+'.'+(d.getMonth() < 9 ? '0' + (d.getMonth() +1) : (d.getMonth()+1))+'.'+d.getFullYear()+'</p>');
 						}
 						else {
-							pcontent.html('<h3>'+event.title+' ('+(d.getDate() < 10 ? '0' + d.getDate() : d.getDate())+'.'+(d.getMonth() < 9 ? '0' + (d.getMonth() +1) : (d.getMonth()+1))+'.'+d.getFullYear()+' '+(d.getHours() < 10 ? '0' + d.getHours() : d.getHours())+":"+(d.getMinutes() < 10 ? '0' + d.getMinutes() : d.getMinutes())+')</h3>');
+							pcontent.html('<h3>'+event.title+' ('+(d.getDate() < 10 ? '0' + d.getDate() : d.getDate())+'.'+(d.getMonth() < 9 ? '0' + (d.getMonth() +1) : (d.getMonth()+1))+'.'+d.getFullYear()+' '+(d.getHours() < 10 ? '0' + d.getHours() : d.getHours())+":"+(d.getMinutes() < 10 ? '0' + d.getMinutes() : d.getMinutes())+')</h3>').attr('data-dtstart',d*1);
 							if((event.pic!=null)&&(event.pic.length>0)) { pcontent.append('<div><img src=\''+event.pic+'\' style="float:left;max-width:50%;max-height:150px;" /></div>'); }
 							pcontent.append('<p><b>Beginn:</b> '+(d.getDate() < 10 ? '0' + d.getDate() : d.getDate())+'.'+(d.getMonth() < 9 ? '0' + (d.getMonth() +1) : (d.getMonth()+1))+'.'+d.getFullYear()+' '+(d.getHours() < 10 ? '0' + d.getHours() : d.getHours())+":"+(d.getMinutes() < 10 ? '0' + d.getMinutes() : d.getMinutes())+'</p>');
 						}
 						if(isset(event.dtend)) { 
 							var end = new Date(event.dtend*1000);
-							pcontent.append('<p><b>Ende:</b> '+(end.getDate() < 10 ? '0' + end.getDate() : end.getDate())+'.'+(end.getMonth() < 9 ? '0' + (end.getMonth() +1) : (end.getMonth()+1))+'.'+end.getFullYear()+' '+(end.getHours() < 10 ? '0' + end.getHours() : end.getHours())+":"+(end.getMinutes() < 10 ? '0' + end.getMinutes() : end.getMinutes())+'</p>');
+							if((d.getHours()==0)&&(d.getMinutes()==0)&&(end.getHours()==0)&&(end.getMinutes()==0)) {
+								pcontent.append('<p><b>Ende:</b> '+(end.getDate() < 10 ? '0' + end.getDate() : end.getDate())+'.'+(end.getMonth() < 9 ? '0' + (end.getMonth() +1) : (end.getMonth()+1))+'.'+end.getFullYear()+'</p>');
+							}
+							else {
+								pcontent.append('<p><b>Ende:</b> '+(end.getDate() < 10 ? '0' + end.getDate() : end.getDate())+'.'+(end.getMonth() < 9 ? '0' + (end.getMonth() +1) : (end.getMonth()+1))+'.'+end.getFullYear()+' '+(end.getHours() < 10 ? '0' + end.getHours() : end.getHours())+":"+(end.getMinutes() < 10 ? '0' + end.getMinutes() : end.getMinutes())+'</p>');
+							}
 						}
 					}
 					pcontent.attr('data-offset',offset);
@@ -1011,7 +1018,7 @@ function generateSpecialData(id,prefix) {
 					});
 					events.push(pcontent);
 				}
-				events = sortEvents(events);
+				events.sort(sortEvents);
 				for(var j = 0; j < events.length; j++) { cmenu.append(events[j]); }
 //				console.log('#'+prefix+'_event');
 				$('#'+prefix+'_event').html(cmenu);
@@ -1117,10 +1124,10 @@ function geolocationSuccess(position) {
 function onDeviceReady() {
 
 	$('#fav').bind('pageshow', function() {
-        console.log('show nearby');
+//		console.log('show nearby');
 		$('#fav_gemeindeliste').listview();
 		$('#fav_gemeindeliste').listview('refresh');
-    });
+	});
 	// Geo-Daten
 	if(localStorage.getItem("lat")) {
 		lat = localStorage.getItem("lat");
@@ -1170,7 +1177,10 @@ function onDeviceReady() {
 //					console.log(global_json);
 					for(var i = 0; i < global_json.gemeinde.length; i++) {
 						var gemeinde = global_json.gemeinde[i];
-						if(!isset(gemeinde)) { console.log(i+': unset'); continue;}
+						if(!isset(gemeinde)) { 
+//							console.log(i+': unset'); 
+							continue;
+						}
 						var id = isset(gemeinde.id) ? gemeinde.id : "";
 						var kurz = isset(gemeinde.kurz) ? gemeinde.kurz : "";
 						var lang = isset(gemeinde.lang) ? gemeinde.lang : "";
@@ -1219,7 +1229,7 @@ function gemeindefill(hBool) {
 	if(hBool > 1 && gemeindefillBool-hBool < 1 ) { return true; }
 	if(gemeindefillBool-hBool == 1) {
 		gemeindefillBool++;
-		console.log('gemeindefill');
+//		console.log('gemeindefill');
 		window.setTimeout(function(){gemeindefill(hBool+1);}, 1000);
 	}
 	gemeindefillBool = 1;
@@ -1256,9 +1266,12 @@ function setGemeinde(id,prefix) {
 				var gemeinde = rs.rows.item(i);
 				$('#'+prefix+'gemeindename').html(gemeinde.lang);
 				if(gemeinde.patron.length > 0) { $('#'+prefix+'gemeindename').append(' &bdquo;'+gemeinde.patron+'&ldquo;');}	
-				$('#'+prefix+'gemeindeadresse').html('<strong>'+gemeinde.kurz+' '+gemeinde.ort+'</strong><br/>'+gemeinde.strasse+'<br/>'+gemeinde.plz+' '+gemeinde.ort+'<br/><br/><a href=\''+gemeinde.url+'\'>'+gemeinde.url+'</a>');
+				$('#'+prefix+'gemeindeadresse').html('<strong>'+gemeinde.kurz+' '+gemeinde.ort+'</strong><br/>'+gemeinde.strasse+'<br/>'+gemeinde.plz+' '+gemeinde.ort);
+				if(gemeinde.url !== null && gemeinde.url.length > 0) {
+					$('#'+prefix+'gemeindeadresse').append('<br/><!--1--><br/><a href=\''+gemeinde.url+'\'>'+gemeinde.url+'</a>');
+				}
 				$('#'+prefix+'gemeindebleiste_karte').attr('href','geo:'+gemeinde.lat+','+gemeinde.lon);
-				if(gemeinde.configurl !== null && gemeinde.configurl.length > 0 ) { 
+				if(gemeinde.configurl !== null && gemeinde.configurl.length > 0 && gemeinde.configurl !== 'null' ) { 
 					$('#'+prefix+'gemeindebleiste_zusatz').attr('data-configurl',escape(gemeinde.configurl)).attr('data-prefix',escape(prefix)).attr('data-id',escape(id)).click(
 						function(){
 //							console.log($(this).data('configurl'));
@@ -1321,7 +1334,7 @@ function makeFavList(hBool) {
 	if(hBool > 1 && FavListBool-hBool < 1 ) { return true; }
 	if(FavListBool-hBool == 1) {
 		FavListBool++;
-		console.log('favlist');
+//		console.log('favlist');
 		window.setTimeout(function(){makeFavList(hBool+1);}, 1000);
 	}
 	FavListBool = 1;
@@ -1364,7 +1377,10 @@ function entfernungBerechnen(lat2,lon2) {
 /*
 $(document).ready(function() {
 	onDeviceReady();
-	if(isset(custom_json)) {console.log(custom_json); dataImport(custom_json,'test');}
+	if(isset(custom_json)) {
+//		console.log(custom_json); 
+		dataImport(custom_json,'test');
+	}
 });
 */
 app.initialize();
