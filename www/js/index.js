@@ -867,7 +867,7 @@ function generateSpecialData(id,prefix) {
 					$("#"+prefix+"_additional").append(pc);
 				}
 				if(zusatz.key == 'url') {
-					var pc = $('<a class="iconWWW" data-inline="true" data-role="button" href="'+zusatz.value+'">'+zusatz.value.replace(/^http[s]?\:\/\/(www\.)?/gi, "")+'</a>');
+					var pc = $('<a class="iconWWW" data-inline="true" target="_blank" data-role="button" href="'+zusatz.value+'">'+zusatz.value.replace(/^http[s]?\:\/\/(www\.)?/gi, "")+'</a>');
 					$("#"+prefix+"_additional").append(pc);
 				}
 				if(zusatz.key == 'mail') {
@@ -1268,7 +1268,7 @@ function setGemeinde(id,prefix) {
 				if(gemeinde.patron.length > 0) { $('#'+prefix+'gemeindename').append(' &bdquo;'+gemeinde.patron+'&ldquo;');}	
 				$('#'+prefix+'gemeindeadresse').html('<strong>'+gemeinde.kurz+' '+gemeinde.ort+'</strong><br/>'+gemeinde.strasse+'<br/>'+gemeinde.plz+' '+gemeinde.ort);
 				if(gemeinde.url !== null && gemeinde.url.length > 0) {
-					$('#'+prefix+'gemeindeadresse').append('<br/><!--1--><br/><a href=\''+gemeinde.url+'\'>'+gemeinde.url+'</a>');
+					$('#'+prefix+'gemeindeadresse').append('<br/><br/><a class="iconWWW" data-inline="true" data-role="button" target="_blank" href=\''+gemeinde.url+'\'>'+gemeinde.url.replace(/^http[s]?\:\/\/(www\.)?/gi, "")+'</a>');
 				}
 				$('#'+prefix+'gemeindebleiste_karte').attr('href','geo:'+gemeinde.lat+','+gemeinde.lon);
 				if(gemeinde.configurl !== null && gemeinde.configurl.length > 0 && gemeinde.configurl !== 'null' ) { 
