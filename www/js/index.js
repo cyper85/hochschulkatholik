@@ -1135,13 +1135,14 @@ function onDeviceReady() {
 	}, false);
 	
 	$('#exit').click(function(){navigator.app.exitApp();});
-	$('#fav_gemeindeliste').listview();
+	
+    //$('#fav_gemeindeliste').listview();
 	$('#fav').bind('pageshow', function() {
 //		console.log('show nearby');
 		$('#fav_gemeindeliste').listview('refresh');
 	});
 	
-	$('#gemeindeliste').listview();
+	// $('#gemeindeliste').listview();
 	$('#search').bind('pageshow', function() {
 //		console.log('show nearby');
 		$('#gemeindeliste').listview('refresh');
