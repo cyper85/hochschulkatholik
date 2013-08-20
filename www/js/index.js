@@ -1122,7 +1122,20 @@ function geolocationSuccess(position) {
 }
 
 function onDeviceReady() {
-
+	
+	// App beenden
+	document.addEventListener("backbutton", function(e){
+		if($.mobile.activePage.is('#home')){
+			e.preventDefault();
+			navigator.app.exitApp();
+		}
+		else {
+			navigator.app.backHistory()
+		}
+	}, false);
+	
+	$('#exit').click(function(){navigator.app.exitApp();});
+	
 	$('#fav').bind('pageshow', function() {
 //		console.log('show nearby');
 		$('#fav_gemeindeliste').listview();
@@ -1344,8 +1357,8 @@ function makeFavList(hBool) {
 			for(var i = 0; i < rs.rows.length; i++) {
 				var favgemeinde = rs.rows.item(i);
 				//console.log('fav: '+favgemeinde.id);
-				$('#fav_gemeindeliste').html('');
 				tx.executeSql("SELECT * FROM gemeinde WHERE id = ?;", [favgemeinde.id], function(tx2,rs2) {
+					$('#fav_gemeindeliste').html('');
 					for (var j = 0; j < rs2.rows.length; j++) {
 						var gemeinde = rs2.rows.item(j);
 						//console.log('gemeindeliste einfüllen:'+gemeinde.id);
@@ -1353,6 +1366,7 @@ function makeFavList(hBool) {
 						$('#fav_gemeindeliste').append($('<li/>').html($('<a/>').attr('href','#gemeinde').attr('data-gemeindeid',gemeinde.id).click(function(){setGemeinde($(this).data('gemeindeid'));}).html(gemeinde.kurz+' '+gemeinde.ort+' <span class="ui-li-count">'+strecke+'km</span>')));
 						//console.log(gemeinde.id+': '+strecke+' km');
 					}
+					FavListBool = 0;
 				});
 			}
 		});
