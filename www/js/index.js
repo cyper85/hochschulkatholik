@@ -874,7 +874,7 @@ function generateSpecialData(id,prefix) {
 					var pc = $('<a class="iconMail" data-inline="true" data-role="button" href="mailto:'+zusatz.value+'">'+zusatz.value+'</a>');
 					$("#"+prefix+"_additional").append(pc);
 				}
-				if(zusatz.key == 'facebook') { $('#'+prefix+'_facebook').attr('href',zusatz.value).removeClass('hidden'); }
+				if((zusatz.key == 'facebook') && zusatz.value.toString().match(/^https?:\/\//)) { $('#'+prefix+'_facebook').attr('href',zusatz.value).removeClass('hidden'); }
 				if(zusatz.key == 'twitter') { $('#'+prefix+'_twitter').attr('href',zusatz.value).removeClass('hidden'); }
 				if(zusatz.key == 'google') { $('#'+prefix+'_google').attr('href',zusatz.value).removeClass('hidden'); }
 				if(zusatz.key == 'logo') { $('#'+prefix+'_logo').attr('src',zusatz.value).removeClass('hidden'); }
@@ -1065,7 +1065,7 @@ function generateSpecialData(id,prefix) {
 						var pc = $('<a class="iconMail" data-inline="true" data-role="button" href="mailto:'+people.email+'">'+people.email+'</a>');
 						pcontent.append(pc);
 					}
-					if((people.facebook!=null)&&(people.facebook.length>0)) {
+					if((people.facebook!=null)&&(people.facebook.length>0) && people.facebook.toString().match(/^https?:\/\//)) {
 						var pc = $('<a class="iconFacebook" target="_blank" data-inline="true" data-role="button" href="'+people.facebook+'"> </a>');
 						pcontent.append(pc);
 					}
@@ -1141,6 +1141,13 @@ function onDeviceReady() {
 		$('#fav_gemeindeliste').listview();
 		$('#fav_gemeindeliste').listview('refresh');
 	});
+	
+	$('#search').bind('pageshow', function() {
+//		console.log('show nearby');
+		$('#gemeindeliste').listview();
+		$('#gemeindeliste').listview('refresh');
+	});
+	
 	// Geo-Daten
 	if(localStorage.getItem("lat")) {
 		lat = localStorage.getItem("lat");
