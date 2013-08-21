@@ -1136,6 +1136,8 @@ function onDeviceReady() {
 	
 	$('#exit').click(function(){navigator.app.exitApp();});
 	
+	$('.gemeindebild').on('error',function(){$(this).addClass('hidden');}).on('load',function(){$(this).removeClass('hidden');});
+	
     //$('#fav_gemeindeliste').listview();
 	$('#fav').bind('pageshow', function() {
 //		console.log('show nearby');
