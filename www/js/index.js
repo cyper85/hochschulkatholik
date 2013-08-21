@@ -850,12 +850,12 @@ function generateSpecialData(id,prefix) {
 	db.transaction(function(tx) {
 		// Zusatzdaten
 		$('#'+prefix+'_additional').html('');
+		$("#"+prefix+"_facebook").addClass("hidden");
+		$("#"+prefix+"_twitter").addClass("hidden");
+		$("#"+prefix+"_google").addClass("hidden");
+		$("#"+prefix+"_logo").addClass("hidden");
 		tx.executeSql("SELECT * FROM additional WHERE id = '"+id+"'" , [], function(tx,rs) {
-			$("#"+prefix+"_additional").html("");
-			$("#"+prefix+"_facebook").addClass("hidden");
-			$("#"+prefix+"_twitter").addClass("hidden");
-			$("#"+prefix+"_google").addClass("hidden");
-			$("#"+prefix+"_logo").addClass("hidden");
+			if(rs.rows.length>0) { $("#"+prefix+"_preadditional").html(""); }
 			for (var i = 0; i < rs.rows.length; i++) {
 				var zusatz = rs.rows.item(i);
 				if(zusatz.key == 'tel') {
@@ -1289,9 +1289,10 @@ function setGemeinde(id,prefix) {
 				$('#'+prefix+'gemeindeadresse').html('<strong>'+gemeinde.kurz+' '+gemeinde.ort+'</strong><br/>'+gemeinde.strasse+'<br/>'+gemeinde.plz+' '+gemeinde.ort);
 				if(gemeinde.url !== null && gemeinde.url.length > 0) {
 					var pc = $('<a class="iconWWW" data-inline="true" target="_blank" data-role="button" href="'+zusatz.value+'">'+zusatz.value.replace(/^http[s]?\:\/\/(www\.)?/gi, "")+'</a>');
-					$("#"+prefix+"_additional").append(pc);
-					$('#'+prefix+'_additional').trigger( "create" );
+					$("#"+prefix+"_preadditional").html(pc);
+					$('#'+prefix+'_preadditional').trigger( "create" );
 				}
+				else{ $("#"+prefix+"_preadditional").html(""); }
 				$('#'+prefix+'gemeindebleiste_karte').attr('href','geo:'+gemeinde.lat+','+gemeinde.lon);
 				if(gemeinde.configurl !== null && gemeinde.configurl.length > 0 && gemeinde.configurl !== 'null' ) { 
 					$('#'+prefix+'gemeindebleiste_zusatz').attr('data-configurl',escape(gemeinde.configurl)).attr('data-prefix',escape(prefix)).attr('data-id',escape(id)).click(
